@@ -4,84 +4,43 @@
   const LWD = window.LowWearData;
   const euro = LWD.euro;
 
-  /* ---------------- Shopify checkout integration ----------------
-     Products checkout for real through Shopify (Storefront API) instead
-     of the site's local demo cart. The API calls themselves live in
-     LWD.Shopify (js/data.js) so admin.html and flash-offer.js can reuse
-     them without loading this whole file. The site's own size / version /
-     personalization UI stays as-is — we just send the choice to Shopify as
-     cart line-item attributes and hand off to Shopify's hosted checkout,
-     since the Buy Button widget has no field for a custom name/number. */
-  const SHOPIFY_PRODUCTS = LWD.SHOPIFY_PRODUCTS;
-
-  /* ---------------- state ---------------- */
-  const STORE_KEY_CART_ID = 'lw_shopify_cart_id';
-  const STORE_KEY_FAV  = 'lw_fav';
+  /* ---------------- carrinho + checkout (Stripe) ----------------
+     Antes, isto falava com a Storefront API da Shopify. Essa loja
+     Shopify foi apagada, por isso o carrinho agora vive inteiramente no
+     localStorage do browser (ver LWD.Cart em js/data.js) e só ao
+     finalizar a compra é que fala com o servidor (a função Vercel em
+     /api/create-checkout-session.js), que cria a sessão de pagamento
+     real na Stripe. */
+  const STORE_KEY_FAV = 'lw_fav';
 
   const loadJSON = (key, fallback) => {
     try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
     catch { return fallback; }
   };
 
-  // The real Shopify cart (see LWD.Shopify in js/data.js), persisted by id
-  // so a customer can add several products over several page visits before
-  // finally checking out once, with everything in the same cart. Kept null
-  // until the first successful add/load.
-  let shopifyCart = null;
+  let cart = LWD.Cart.load();
   let favs = loadJSON(STORE_KEY_FAV, []);
 
   const saveFavs = () => localStorage.setItem(STORE_KEY_FAV, JSON.stringify(favs));
 
-  async function loadCartFromStorage() {
-    const id = localStorage.getItem(STORE_KEY_CART_ID);
-    if (!id) return;
-    try {
-      shopifyCart = await LWD.Shopify.getCart(id);
-      if (!shopifyCart) localStorage.removeItem(STORE_KEY_CART_ID); // expired on Shopify's side
-    } catch { shopifyCart = null; }
+  function addLineToCart({ productId, size, customName, version }) {
+    cart = LWD.Cart.addLine({ productId, size, quantity: 1, customName, version });
+    updateCounts();
+    renderCart();
+    return cart;
+  }
+
+  function updateCartLineQty(lineId, quantity) {
+    cart = LWD.Cart.updateLineQty(lineId, quantity);
     updateCounts();
     renderCart();
   }
 
-  async function addLineToCart(variantId, quantity, attributes) {
-    if (shopifyCart && shopifyCart.id) {
-      shopifyCart = await LWD.Shopify.addCartLine(shopifyCart.id, variantId, quantity, attributes);
-    } else {
-      shopifyCart = await LWD.Shopify.createCart(variantId, quantity, attributes);
-      localStorage.setItem(STORE_KEY_CART_ID, shopifyCart.id);
-    }
-    updateCounts();
-    renderCart();
-    return shopifyCart;
-  }
-
-  async function updateCartLineQty(lineId, quantity) {
-    if (!shopifyCart) return;
-    shopifyCart = await LWD.Shopify.updateCartLine(shopifyCart.id, lineId, quantity);
+  function removeCartLine(lineId) {
+    cart = LWD.Cart.removeLine(lineId);
     updateCounts();
     renderCart();
   }
-
-  async function removeCartLine(lineId) {
-    if (!shopifyCart) return;
-    shopifyCart = await LWD.Shopify.removeCartLine(shopifyCart.id, lineId);
-    updateCounts();
-    renderCart();
-  }
-
-  async function applyCouponCode(code) {
-    if (!shopifyCart || !shopifyCart.id) throw new Error('empty-cart');
-    shopifyCart = await LWD.Shopify.applyDiscountCode(shopifyCart.id, code);
-    renderCart();
-    return shopifyCart;
-  }
-
-  async function removeCouponCode() {
-    if (!shopifyCart || !shopifyCart.id) return;
-    shopifyCart = await LWD.Shopify.removeDiscountCode(shopifyCart.id);
-    renderCart();
-  }
-
   /* ---------------- toast ---------------- */
   const toast = $('#toast');
   let toastTimer;
@@ -192,21 +151,12 @@
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
-
   /* ---------------- cart ---------------- */
-  // Reverse lookup so a Shopify cart line (which only knows the Shopify
-  // numeric product id) can be matched back to our own catalog entry for
-  // its name/photo/team, and — for the "escolha 6, pague 3" progress panel
-  // — whether it's a participating product.
-  const SHOPIFY_ID_TO_PRODUCT_ID = Object.fromEntries(
-    Object.entries(LWD.SHOPIFY_PRODUCTS).map(([id, v]) => [v.shopifyProductId, id])
-  );
-
   function renderCart() {
     const body = $('#drawer-body');
     const foot = $('#drawer-foot');
     if (!body) return;
-    const lines = shopifyCart?.lines || [];
+    const lines = cart.lines || [];
     if (lines.length === 0) {
       body.innerHTML = `
         <div class="drawer-empty">
@@ -220,25 +170,23 @@
     }
     if (foot) foot.style.display = 'block';
     body.innerHTML = lines.map((line) => {
-      const productId = SHOPIFY_ID_TO_PRODUCT_ID[line.productId];
-      const p = productId ? LWD.getProduct(productId) : null;
-      const name = p ? LWD.fullName(p) : line.productTitle;
+      const p = LWD.getProduct(line.productId);
+      const name = p ? LWD.fullName(p) : line.productId;
       const media = p ? LWD.productMedia(p) : '';
-      const sizeAttr = line.attributes.find((a) => a.key === 'Tamanho');
-      const otherAttrs = line.attributes.filter((a) => a.key !== 'Tamanho').map((a) => a.value).join(' · ');
+      const extras = [line.version, line.customName ? `"${line.customName}"` : ''].filter(Boolean).join(' · ');
       return `
       <div class="cart-line" data-line-id="${line.id}">
         <div class="cl-media${media.startsWith('<img') ? ' has-photo' : ''}">${media}</div>
         <div class="cl-info">
           <div class="cl-name">${name}</div>
-          <div class="cl-meta">${sizeAttr ? `Tam. ${sizeAttr.value}` : line.variantTitle}${otherAttrs ? ` · ${otherAttrs}` : ''}</div>
+          <div class="cl-meta">Tam. ${line.size}${extras ? ` · ${extras}` : ''}</div>
           <div class="cl-row">
             <div class="qty-stepper">
               <button data-act="dec" aria-label="Diminuir quantidade">−</button>
               <span>${line.quantity}</span>
               <button data-act="inc" aria-label="Aumentar quantidade">+</button>
             </div>
-            <span class="cl-price">${euro(line.lineTotal)}</span>
+            <span class="cl-price">${euro(line.unitPrice * line.quantity)}</span>
           </div>
           <button class="cl-remove" data-act="remove">Remover</button>
         </div>
@@ -247,82 +195,45 @@
 
     const totalsEl = $('#drawer-totals');
     if (totalsEl) {
-      // cart.cost.subtotalAmount is already computed *after* discounts (both
-      // automatic and code-based), so it always equals totalAmount — the
-      // undiscounted total has to be rebuilt from each line's per-unit price.
-      const originalTotal = lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
-      const savings = originalTotal - shopifyCart.total;
-      totalsEl.innerHTML = savings > 0.004
-        ? `<div class="drawer-subtotal drawer-subtotal-crossed"><span>Subtotal</span><span>${euro(originalTotal)}</span></div>
-           <div class="drawer-subtotal drawer-subtotal-discount"><span>Desconto</span><span>−${euro(savings)}</span></div>
-           <div class="drawer-subtotal"><span>Total</span><strong>${euro(shopifyCart.total)}</strong></div>`
-        : `<div class="drawer-subtotal"><span>Total</span><strong>${euro(shopifyCart.total)}</strong></div>`;
+      const { subtotal } = LWD.Cart.totals(cart);
+      totalsEl.innerHTML = `<div class="drawer-subtotal"><span>Total</span><strong>${euro(subtotal)}</strong></div>`;
     }
     renderCouponUI();
     renderPromoProgress(lines);
     updateCounts();
   }
 
+  // Códigos promocionais por cupão não existem nesta versão (não há
+  // Shopify a validá-los). O formulário fica visível mas avisa em vez de
+  // recarregar a página.
   function renderCouponUI() {
     const msgEl = $('#cart-coupon-msg');
-    const inputEl = $('#cart-coupon-input');
     if (!msgEl) return;
-    const active = (shopifyCart?.discountCodes || []).find((d) => d.applicable);
-    if (active) {
-      msgEl.innerHTML = `<span class="coupon-ok">Código "${active.code}" aplicado.</span> <button type="button" class="coupon-remove" id="cart-coupon-remove">Remover</button>`;
-      if (inputEl) inputEl.value = '';
-    } else {
-      const invalid = (shopifyCart?.discountCodes || []).find((d) => !d.applicable);
-      msgEl.innerHTML = invalid ? `<span class="coupon-error">Código "${invalid.code}" inválido ou não aplicável a este carrinho.</span>` : '';
-    }
+    msgEl.innerHTML = '';
   }
 
-  $('#cart-coupon-form')?.addEventListener('submit', async (e) => {
+  $('#cart-coupon-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const input = $('#cart-coupon-input');
-    const code = input?.value.trim();
-    if (!code) return;
-    if (!shopifyCart || !shopifyCart.lines?.length) {
-      const msgEl = $('#cart-coupon-msg');
-      if (msgEl) msgEl.innerHTML = `<span class="coupon-error">Adicione produtos ao carrinho antes de aplicar um código.</span>`;
-      return;
-    }
-    const btn = $('#cart-coupon-btn');
-    if (btn) btn.disabled = true;
-    try {
-      await applyCouponCode(code);
-    } catch {
-      const msgEl = $('#cart-coupon-msg');
-      if (msgEl) msgEl.innerHTML = `<span class="coupon-error">Não foi possível aplicar este código. Tente novamente.</span>`;
-    } finally {
-      if (btn) btn.disabled = false;
-    }
+    const msgEl = $('#cart-coupon-msg');
+    if (msgEl) msgEl.innerHTML = `<span class="coupon-error">Códigos promocionais não estão disponíveis de momento.</span>`;
   });
 
-  $('#drawer-foot')?.addEventListener('click', async (e) => {
-    if (e.target.id === 'cart-coupon-remove') await removeCouponCode();
-  });
-
-  $('#drawer-body')?.addEventListener('click', async (e) => {
+  $('#drawer-body')?.addEventListener('click', (e) => {
     const line = e.target.closest('.cart-line');
-    if (!line || !shopifyCart) return;
+    if (!line) return;
     const lineId = line.dataset.lineId;
-    const current = shopifyCart.lines.find((l) => l.id === lineId);
+    const current = cart.lines.find((l) => l.id === lineId);
     if (!current) return;
     const act = e.target.dataset.act;
-    try {
-      if (act === 'inc') await updateCartLineQty(lineId, current.quantity + 1);
-      if (act === 'dec') await updateCartLineQty(lineId, Math.max(1, current.quantity - 1));
-      if (act === 'remove') await removeCartLine(lineId);
-    } catch { showToast('Erro ao atualizar o carrinho. Tenta novamente.'); }
+    if (act === 'inc') updateCartLineQty(lineId, current.quantity + 1);
+    if (act === 'dec') updateCartLineQty(lineId, Math.max(1, current.quantity - 1));
+    if (act === 'remove') removeCartLine(lineId);
   });
 
   /* ---------------- "Escolha 6, pague 3" cart progress ----------------
-     Reads live off the real cart, so it always matches what's actually
-     there. This panel is a preview only — the discount that really lands
-     is whatever Shopify's own Buy X Get Y automatic discount calculates
-     at checkout (see PROMO_CONFIG note in js/data.js), so it's labelled
-     as an estimate rather than a promise. */
+     Pré-visualização apenas — o desconto real é confirmado pelo servidor
+     no momento do checkout (ver PROMO_CONFIG em js/data.js e a lógica em
+     api/create-checkout-session.js). */
   function renderPromoProgress(lines) {
     const el = $('#cart-promo-progress');
     if (!el) return;
@@ -333,8 +244,7 @@
 
     const eligibleUnitPrices = [];
     lines.forEach((line) => {
-      const productId = SHOPIFY_ID_TO_PRODUCT_ID[line.productId];
-      if (productId && LWD.isPromoEligible(productId)) {
+      if (LWD.isPromoEligible(line.productId)) {
         for (let i = 0; i < line.quantity; i++) eligibleUnitPrices.push(line.unitPrice);
       }
     });
@@ -371,7 +281,7 @@
   }
 
   function updateCounts() {
-    const cartCount = (shopifyCart?.lines || []).reduce((s, l) => s + l.quantity, 0);
+    const cartCount = (cart.lines || []).reduce((s, l) => s + l.quantity, 0);
     $$('.js-cart-count').forEach(el => { el.textContent = cartCount; el.style.display = cartCount ? 'flex' : 'none'; });
     $$('.js-fav-count').forEach(el => { el.textContent = favs.length; el.style.display = favs.length ? 'flex' : 'none'; });
   }
@@ -611,10 +521,7 @@
     document.querySelector('#mais-procuradas')?.scrollIntoView({ behavior: 'smooth' });
   }));
 
-  /* ---------------- newsletter ----------------
-     Signs the email up for real via LWD.Shopify.newsletterSignup (creates a
-     Shopify customer with marketing consent — visible in Shopify Admin →
-     Customers), instead of just showing a toast and discarding it. */
+  /* ---------------- newsletter ---------------- */
   $('#newsletter-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = $('#newsletter-email');
@@ -625,7 +532,7 @@
     btn.disabled = true;
     btn.textContent = 'A inscrever…';
     try {
-      await LWD.Shopify.newsletterSignup(email);
+      await LWD.Cart.newsletterSignup(email);
       showToast('Inscrição confirmada. Bem-vindo à bancada.');
       input.value = '';
     } catch (err) {
@@ -635,7 +542,6 @@
       btn.textContent = originalText;
     }
   });
-
   /* ---------------- login modal switch ---------------- */
   $('#to-register')?.addEventListener('click', () => { openOverlay($('#register-modal')); });
   $('#to-login')?.addEventListener('click', () => { openOverlay($('#login-modal')); });
@@ -644,12 +550,22 @@
   }));
 
   /* ---------------- checkout ---------------- */
-  $('#checkout-btn')?.addEventListener('click', (e) => {
+  $('#checkout-btn')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    if (!shopifyCart || !shopifyCart.lines.length) { showToast('O seu carrinho está vazio'); return; }
-    window.location.href = shopifyCart.checkoutUrl;
+    if (!cart.lines.length) { showToast('O seu carrinho está vazio'); return; }
+    const btn = e.currentTarget;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'A preparar o pagamento…';
+    try {
+      const url = await LWD.Cart.checkout(cart);
+      window.location.href = url;
+    } catch (err) {
+      showToast('Não foi possível iniciar o pagamento. Tenta novamente.');
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   });
-
   /* ---------------- size guide ---------------- */
   $$('.size-guide-link').forEach(l => l.addEventListener('click', (e) => { e.preventDefault(); openOverlay($('#size-guide-modal')); }));
 
@@ -817,7 +733,6 @@
       btn.classList.add('is-active');
       $(`#tab-${btn.dataset.tab}`)?.classList.add('is-active');
     }));
-
     function buildPdpProduct() {
       const selected = $('.size-chip.is-selected', sizesEl);
       if (!selected) { showToast('Escolha um tamanho'); return null; }
@@ -832,46 +747,22 @@
         media: gallery[0],
       };
     }
-    const shopifyMap = SHOPIFY_PRODUCTS[p.id];
     const addBtn = $('#pdp-add-cart');
     const buyBtn = $('#pdp-buy-now');
-    if (shopifyMap) {
-      const runAdd = async (btn, { goToCheckout }) => {
-        const item = buildPdpProduct();
-        if (!item) return;
-        const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'A preparar…';
-        try {
-          const variants = await LWD.Shopify.fetchVariants(shopifyMap.shopifyProductId);
-          const variant = LWD.Shopify.pickVariant(variants, item.size);
-          if (!variant || !variant.availableForSale) {
-            showToast('Este tamanho está esgotado.');
-            return;
-          }
-          const attributes = [{ key: 'Tamanho', value: item.size }];
-          if (item.version) attributes.push({ key: 'Versão', value: item.version });
-          if (item.custom) attributes.push({ key: 'Personalização', value: item.custom });
-          await addLineToCart(variant.id, 1, attributes);
-          if (goToCheckout) {
-            window.location.href = shopifyCart.checkoutUrl;
-          } else {
-            showToast(`${LWD.fullName(p)} adicionada ao carrinho`);
-            openOverlay(cartDrawer);
-          }
-        } catch (err) {
-          showToast('Erro ao contactar a loja. Tenta novamente.');
-        } finally {
-          btn.disabled = false;
-          btn.textContent = originalText;
-        }
-      };
-      addBtn?.addEventListener('click', () => runAdd(addBtn, { goToCheckout: false }));
-      buyBtn?.addEventListener('click', () => runAdd(buyBtn, { goToCheckout: true }));
-    } else {
-      addBtn?.addEventListener('click', () => showToast('Este produto ainda não está disponível para compra.'));
-      buyBtn?.addEventListener('click', () => showToast('Este produto ainda não está disponível para compra.'));
-    }
+    const runAdd = (btn, { goToCheckout }) => {
+      const item = buildPdpProduct();
+      if (!item) return;
+      if (p.availability === 'esgotado') { showToast('Este produto está esgotado.'); return; }
+      addLineToCart({ productId: p.id, size: item.size, customName: item.custom, version: item.version });
+      if (goToCheckout) {
+        $('#checkout-btn')?.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
+      } else {
+        showToast(`${LWD.fullName(p)} adicionada ao carrinho`);
+        openOverlay(cartDrawer);
+      }
+    };
+    addBtn?.addEventListener('click', () => runAdd(addBtn, { goToCheckout: false }));
+    buyBtn?.addEventListener('click', () => runAdd(buyBtn, { goToCheckout: true }));
 
     const favBtn = $('#pdp-fav-btn');
     if (favBtn) {
@@ -887,7 +778,6 @@
       wireProductGrid(relatedGrid);
     }
   }
-
   /* ---------------- boot ---------------- */
   renderTeamGrid($('#team-grid'));
   renderWeeklySpotlight($('#spotlight-grid'));
@@ -897,7 +787,7 @@
   initProductPage();
   updateCounts();
   observeReveals();
-  loadCartFromStorage();
+  renderCart();
 
   window.LowWear = { toggleFav, openOverlay, closeAllOverlays };
 })();
