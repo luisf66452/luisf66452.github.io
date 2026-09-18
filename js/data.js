@@ -330,24 +330,29 @@
   // unitPrice aqui é só para o cliente conseguir mostrar o total no
   // carrinho — o valor que conta a sério é sempre recalculado no
   // servidor (api/create-checkout-session.js) a partir do id do produto.
-  function unitPriceFor(product, customName) {
-    return product.price + (customName ? 8 : 0);
+  // Nota: tal como já acontecia com a personalização de nome/número, o
+  // acréscimo do emblema só é cobrado a sério na Stripe quando a função
+  // do servidor (noutro repositório) também souber somar esse valor.
+  function unitPriceFor(product, customName, badgePrice) {
+    return product.price + (customName ? 8 : 0) + (badgePrice || 0);
   }
 
-  function addCartLine({ productId, size, quantity, customName, version }) {
+  function addCartLine({ productId, size, quantity, customName, version, badge, badgePrice }) {
     const product = getProduct(productId);
     if (!product) throw new Error('produto desconhecido');
     quantity = Math.max(1, quantity || 1);
     customName = (customName || '').trim();
+    badge = (badge || '').trim();
+    badgePrice = badge ? (badgePrice || 0) : 0;
     const cart = loadCart();
-    // junta a uma linha existente do mesmo produto/tamanho/personalização
-    const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === (version || ''));
+    // junta a uma linha existente do mesmo produto/tamanho/personalização/emblema
+    const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === (version || '') && (l.badge || '') === badge);
     if (existing) {
       existing.quantity += quantity;
     } else {
       cart.lines.push({
-        id: makeLineId(), productId, size, quantity, customName, version: version || '',
-        unitPrice: unitPriceFor(product, customName), addedAt: Date.now(),
+        id: makeLineId(), productId, size, quantity, customName, version: version || '', badge, badgePrice,
+        unitPrice: unitPriceFor(product, customName, badgePrice), addedAt: Date.now(),
       });
     }
     return saveCart(cart);
