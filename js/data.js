@@ -254,11 +254,12 @@
      ============================================================ */
   const PROMO_CONFIG = {
     promotionEnabled: true,
-    // ISO 8601 with explicit Europe/Lisbon offset (WEST = +01:00 in August,
-    // no DST change inside this window) so the countdown is correct
+    // ISO 8601 with explicit Europe/Lisbon offset (WEST = +01:00). Kept
+    // inside the WEST window (before the late-October DST change back to
+    // +00:00) so the countdown never jumps an hour mid-promotion,
     // regardless of the visitor's own timezone.
-    promotionStart: '2026-08-04T00:00:00+01:00',
-    promotionEnd: '2026-08-25T23:59:59+01:00',
+    promotionStart: '2026-09-18T00:00:00+01:00',
+    promotionEnd: '2026-10-09T23:59:59+01:00',
     promotionTimeZone: 'Europe/Lisbon',
     // Empty = every product in the catalog participates. List specific
     // product ids (see PRODUCTS above) to restrict participation instead.
