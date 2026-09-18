@@ -27,11 +27,16 @@
 </head>
 <body data-page="home">
 
-<div class="promo-bar promo-only" id="promo-bar" role="region" aria-label="Promoção de inauguração" hidden>
+<div class="promo-bar promo-only" id="promo-bar" role="region" aria-label="Promoção por tempo limitado" hidden>
   <div class="promo-bar-inner">
-    <p class="promo-bar-main">🔥 INAUGURAÇÃO LOW WEAR: ESCOLHA 6 CAMISAS E PAGUE APENAS 3</p>
-    <p class="promo-bar-sub">Adicione 6 camisas participantes ao carrinho. As 3 de menor valor ficam grátis.</p>
-    <a href="index.html#catalogo" class="promo-bar-cta">APROVEITAR PROMOÇÃO</a>
+    <p class="promo-bar-main">LEVE 6, PAGUE 3 <span class="promo-bar-tag">ÚLTIMA CHAMADA</span></p>
+    <div class="promo-bar-countdown" aria-label="Tempo restante da promoção">
+      <span class="promo-bar-countdown-unit"><strong class="promo-countdown-d">0</strong>d</span>
+      <span class="promo-bar-countdown-unit"><strong class="promo-countdown-h">00</strong>h</span>
+      <span class="promo-bar-countdown-unit"><strong class="promo-countdown-m">00</strong>m</span>
+      <span class="promo-bar-countdown-unit"><strong class="promo-countdown-s">00</strong>s</span>
+    </div>
+    <a href="index.html#catalogo" class="promo-bar-cta">APROVEITAR OFERTA</a>
   </div>
 </div>
 
@@ -68,7 +73,6 @@
         </div>
       </div>
       <a href="#catalogo" class="js-filter-novo">Lançamentos</a>
-      <a href="#mais-procuradas" class="js-scroll-featured">Mais vendidos</a>
       <a href="#contacto">Contacto</a>
     </nav>
 
@@ -119,41 +123,21 @@
       <a href="equipa.html?slug=porto">FC Porto</a>
     </div>
     <a href="#catalogo">Lançamentos</a>
-    <a href="#mais-procuradas">Mais vendidos</a>
     <a href="#contacto">Contacto</a>
   </nav>
 </div>
 
-<!-- ============ HERO ============ -->
-<section class="hero">
-  <div class="hero-bg-word">
-    <div class="track">
-      <span>LOW WEAR</span><span>LOW WEAR</span><span>LOW WEAR</span><span>LOW WEAR</span>
-      <span>LOW WEAR</span><span>LOW WEAR</span><span>LOW WEAR</span><span>LOW WEAR</span>
-    </div>
-  </div>
-  <div class="hero-blob hero-blob-a"></div>
-  <div class="hero-blob hero-blob-b"></div>
-  <div class="hero-photo-bg">
-    <img src="img/selecao-hero-relva.webp" alt="Camisa principal da Seleção Brasileira sobre relva">
-    <span class="hero-photo-tag">Seleção Brasileira <strong>· 2024</strong></span>
-    <div class="hero-badge-spin">
-      <svg viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="56" fill="#0b0c0a" opacity="0.88"/>
-        <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5"/>
-        <path id="badgeCircle" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" fill="none"/>
-        <text><textPath href="#badgeCircle">NOVA COLEÇÃO • EDIÇÃO 2024 • VISTA A CAMISA • </textPath></text>
-      </svg>
-      <span class="hero-badge-center">★</span>
-    </div>
-  </div>
-  <div class="container hero-grid">
-    <div class="hero-copy">
-      <h1>Vista a sua paixão.<br><em>Carregue as suas cores.</em></h1>
-      <p>Camisas da Seleção Brasileira e dos maiores clubes do Brasil. Modelos atuais, clássicos e exclusivos para quem vive o futebol dentro e fora do estádio.</p>
-      <div class="hero-cta">
-        <a href="#catalogo" class="btn btn-primary">Explorar coleção</a>
-        <a href="#catalogo" class="btn btn-ghost">Escolher o meu clube</a>
+<!-- ============ PROMOÇÃO "LEVE 6, PAGUE 3" — agora a primeira secção do site ============ -->
+<section class="promo-hero promo-hero-main promo-only" id="promo-hero" hidden>
+  <div class="container promo-hero-grid">
+    <div class="promo-hero-copy">
+      <p class="promo-eyebrow">OFERTA POR TEMPO LIMITADO</p>
+      <h1 class="promo-hero-title">ÚLTIMA CHAMADA.</h1>
+      <p class="promo-hero-title-2">ESCOLHA 6<br>PAGUE APENAS 3</p>
+      <p class="promo-hero-support">Monte a sua coleção, misture clubes e escolha os seus seis mantos favoritos. As três camisas de menor valor ficam grátis automaticamente.</p>
+      <div class="promo-hero-ctas">
+        <a href="#catalogo" class="btn btn-primary">ESCOLHER AS MINHAS 6</a>
+        <button type="button" class="btn btn-ghost js-promo-how">COMO FUNCIONA?</button>
       </div>
       <div class="hero-benefits">
         <div class="hero-benefit">
@@ -174,9 +158,27 @@
         </div>
         <div class="hero-benefit">
           <svg viewBox="0 0 24 24"><path d="M12 21s-7-5.4-7-11a7 7 0 0 1 14 0c0 5.6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
-          <span>Checkout seguro via Shopify</span>
+          <span>Checkout seguro via Stripe</span>
         </div>
       </div>
+      <div class="promo-countdown">
+        <p class="promo-countdown-title">A PROMOÇÃO TERMINA EM:</p>
+        <div class="promo-countdown-grid">
+          <div class="promo-countdown-unit"><span class="promo-countdown-d">0</span><label>Dias</label></div>
+          <div class="promo-countdown-unit"><span class="promo-countdown-h">00</span><label>Horas</label></div>
+          <div class="promo-countdown-unit"><span class="promo-countdown-m">00</span><label>Minutos</label></div>
+          <div class="promo-countdown-unit"><span class="promo-countdown-s">00</span><label>Segundos</label></div>
+        </div>
+      </div>
+      <p class="promo-hero-note">Promoção válida de <span class="promo-date-start"></span> até <span class="promo-date-end"></span>. Aplicam-se condições. <a href="#" class="js-promo-how">Ver regras da promoção</a></p>
+    </div>
+    <div class="promo-hero-photos">
+      <img src="img/spin/selecao-principal/01.png" alt="Amarelinha da Copa" loading="lazy">
+      <img src="img/spin/flamengo-principal/01.png" alt="Manto Rubro-Negro" loading="lazy">
+      <img src="img/spin/corinthians-principal/01.png" alt="Fiel Alvinegra" loading="lazy">
+      <img src="img/spin/sao-paulo-principal/01.png" alt="Soberana Tricolor New Balance" loading="lazy">
+      <img src="img/spin/palmeiras-principal/01.png" alt="Verdão Classico" loading="lazy">
+      <img src="img/spin/cruzeiro-principal/01.png" alt="Manto Celeste Azul" loading="lazy">
     </div>
   </div>
 </section>
@@ -190,40 +192,6 @@
     <a href="#futebol-portugues" class="btn btn-ghost btn-sm">Ver catálogo português</a>
   </div>
 </div>
-
-<!-- ============ PROMOÇÃO DE INAUGURAÇÃO ============ -->
-<section class="promo-hero promo-only" id="promo-hero" hidden>
-  <div class="container promo-hero-grid">
-    <div class="promo-hero-photos">
-      <img src="img/spin/selecao-principal/01.png" alt="Amarelinha da Copa" loading="lazy">
-      <img src="img/spin/flamengo-principal/01.png" alt="Manto Rubro-Negro" loading="lazy">
-      <img src="img/spin/corinthians-principal/01.png" alt="Fiel Alvinegra" loading="lazy">
-      <img src="img/spin/sao-paulo-principal/01.png" alt="Soberana Tricolor New Balance" loading="lazy">
-      <img src="img/spin/palmeiras-principal/01.png" alt="Verdão Classico" loading="lazy">
-      <img src="img/spin/cruzeiro-principal/01.png" alt="Manto Celeste Azul" loading="lazy">
-    </div>
-    <div class="promo-hero-copy">
-      <p class="promo-eyebrow">PROMOÇÃO DE INAUGURAÇÃO</p>
-      <h2 class="promo-hero-title">O SITE ABRIU.</h2>
-      <p class="promo-hero-title-2">ESCOLHA 6<br>PAGUE APENAS 3</p>
-      <p class="promo-hero-support">Monte a sua coleção, misture clubes e escolha os seus seis mantos favoritos. As três camisas de menor valor ficam grátis automaticamente.</p>
-      <div class="promo-hero-ctas">
-        <a href="#catalogo" class="btn btn-primary">ESCOLHER AS MINHAS 6</a>
-        <button type="button" class="btn btn-ghost js-promo-how">COMO FUNCIONA?</button>
-      </div>
-      <div class="promo-countdown">
-        <p class="promo-countdown-title">A PROMOÇÃO TERMINA EM:</p>
-        <div class="promo-countdown-grid">
-          <div class="promo-countdown-unit"><span class="promo-countdown-d">0</span><label>Dias</label></div>
-          <div class="promo-countdown-unit"><span class="promo-countdown-h">00</span><label>Horas</label></div>
-          <div class="promo-countdown-unit"><span class="promo-countdown-m">00</span><label>Minutos</label></div>
-          <div class="promo-countdown-unit"><span class="promo-countdown-s">00</span><label>Segundos</label></div>
-        </div>
-      </div>
-      <p class="promo-hero-note">Promoção válida de <span class="promo-date-start"></span> até <span class="promo-date-end"></span>. Aplicam-se condições. <a href="#" class="js-promo-how">Ver regras da promoção</a></p>
-    </div>
-  </div>
-</section>
 
 <div class="ticker-band">
   <div class="track">
@@ -283,33 +251,6 @@
 
 <div class="tear"></div>
 
-<!-- ============ CAMISA MAIS PROCURADA ============
-     Um produto só, escolhido automaticamente (ver weeklyFeaturedProduct em
-     js/data.js) — muda sozinho uma vez por semana, sem admin. -->
-<section class="section-dark aurora-bg aurora-alt" id="mais-procuradas">
-  <div class="container">
-    <div class="section-head reveal">
-      <h2>Camisa mais<br>procurada</h2>
-      <p class="section-sub">A escolha da semana — atualizada automaticamente, todas as semanas.</p>
-    </div>
-    <div class="spotlight-stage">
-      <div class="spotlight-ring"></div>
-      <div class="spotlight-ring"></div>
-      <div class="spotlight-ring"></div>
-      <div class="spotlight-particle p1"></div>
-      <div class="spotlight-particle p2"></div>
-      <div class="spotlight-particle p3"></div>
-      <div class="spotlight-particle p4"></div>
-      <div class="spotlight-particle p5"></div>
-      <div class="spotlight-particle p6"></div>
-      <div class="spotlight-particle p7"></div>
-      <div class="spotlight-particle p8"></div>
-      <span class="spotlight-flare">🔥 Mais vendida da semana</span>
-      <div class="product-grid spotlight-grid" id="spotlight-grid"></div>
-    </div>
-  </div>
-</section>
-
 <!-- ============ FUTEBOL PORTUGUÊS ============
      Secção à parte do catálogo brasileiro — ver country:'PT' em TEAMS
      (js/data.js) e renderPortugalSection() em js/main.js. Fica escondida
@@ -324,46 +265,26 @@
   </div>
 </section>
 
-<!-- ============ SOBRE A LOW WEAR ============ -->
+<!-- ============ AS CAMISOLAS MAIS PROCURADAS ============
+     Nota: esta secção mostra fotos dos PRODUTOS, não de clientes — ainda
+     não temos fotos reais de clientes autorizadas para usar aqui. Quando
+     tivermos (Instagram da loja, com autorização), trocar por essas. -->
 <section class="section-dark aurora-bg" id="sobre">
   <div class="container">
     <div class="section-head reveal">
-      <h2>Sobre a<br>Low Wear</h2>
-      <p class="section-sub">Relatos rápidos de quem já veste a Low Wear.</p>
+      <h2>As camisolas mais<br>procuradas pelos fãs</h2>
+      <p class="section-sub">Uma amostra do que os nossos clientes mais escolhem — Brasil e Portugal, lado a lado.</p>
     </div>
 
-    <div class="about-story reveal">
-      <p>A Low Wear é uma loja nova de camisas de futebol, criada por gente que também é apaixonada pelo jogo e sabe o que significa vestir as cores do seu clube. Trabalhamos com uma seleção de camisas da Seleção Brasileira e de seis clubes — Flamengo, Corinthians, São Paulo, Palmeiras, Santos e Cruzeiro — com o objetivo de aproximar cada torcedor da sua paixão, com uma experiência de compra simples, moderna e de confiança.</p>
-    </div>
-
-    <div class="about-video-grid">
-      <div class="about-video-card reveal">
-        <video class="about-video" muted loop playsinline preload="metadata" poster="">
-          <source src="video/sobre/relato-1.mp4" type="video/mp4">
-        </video>
-        <div class="about-video-fallback">Vídeo em breve</div>
-        <button class="about-video-mute" type="button" aria-label="Ativar som" aria-pressed="false">
-          <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4Z"/><path d="M17 8a5 5 0 0 1 0 8" opacity="0"/><line x1="16" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="16" y2="15"/></svg>
-        </button>
-      </div>
-      <div class="about-video-card reveal">
-        <video class="about-video" muted loop playsinline preload="metadata" poster="">
-          <source src="video/sobre/relato-2.mp4" type="video/mp4">
-        </video>
-        <div class="about-video-fallback">Vídeo em breve</div>
-        <button class="about-video-mute" type="button" aria-label="Ativar som" aria-pressed="false">
-          <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4Z"/><path d="M17 8a5 5 0 0 1 0 8" opacity="0"/><line x1="16" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="16" y2="15"/></svg>
-        </button>
-      </div>
-      <div class="about-video-card reveal">
-        <video class="about-video" muted loop playsinline preload="metadata" poster="">
-          <source src="video/sobre/relato-3.mp4" type="video/mp4">
-        </video>
-        <div class="about-video-fallback">Vídeo em breve</div>
-        <button class="about-video-mute" type="button" aria-label="Ativar som" aria-pressed="false">
-          <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4Z"/><path d="M17 8a5 5 0 0 1 0 8" opacity="0"/><line x1="16" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="16" y2="15"/></svg>
-        </button>
-      </div>
+    <div class="fans-wall reveal">
+      <img src="img/spin/selecao-principal/01.png" alt="Amarelinha da Copa" loading="lazy">
+      <img src="img/spin/flamengo-principal/01.png" alt="Manto Rubro-Negro" loading="lazy">
+      <img src="img/spin/corinthians-principal/01.png" alt="Fiel Alvinegra" loading="lazy">
+      <img src="img/spin/sao-paulo-principal/01.png" alt="Soberana Tricolor" loading="lazy">
+      <img src="img/benfica-principal.png" alt="Clássica do Benfica" loading="lazy">
+      <img src="img/sporting-principal.png" alt="Clássica do Sporting" loading="lazy">
+      <img src="img/porto-principal.png" alt="Clássica do Porto" loading="lazy">
+      <img src="img/spin/palmeiras-principal/01.png" alt="Verdão Clássico" loading="lazy">
     </div>
   </div>
 </section>
@@ -392,7 +313,7 @@
       <div class="footer-col">
         <h5>Low Wear</h5>
         <ul>
-          <li><a href="#sobre">Sobre a Low Wear</a></li>
+          <li><a href="#sobre">Os nossos fãs</a></li>
           <li><a href="#" id="footer-faq">Perguntas frequentes</a></li>
         </ul>
       </div>
@@ -608,7 +529,7 @@
     <p>Alguns prestadores poderão tratar dados fora do Espaço Económico Europeu. Quando isso acontecer, serão utilizadas as garantias adequadas exigidas pela legislação de proteção de dados.</p>
 
     <h4>5. Pagamentos</h4>
-    <p>Os pagamentos realizados no site são processados por plataformas externas e seguras (Shopify).</p>
+    <p>Os pagamentos realizados no site são processados por plataformas externas e seguras (Stripe).</p>
     <p>A Low Wear poderá receber informações como a confirmação do pagamento, o valor, a data da transação e o método utilizado, mas não armazena os dados completos do cartão bancário do cliente.</p>
     <p>O tratamento dessas informações também está sujeito às políticas de privacidade e segurança do prestador de pagamento utilizado.</p>
 
@@ -925,7 +846,7 @@
       <li>Cartão bancário;</li>
       <li>Multibanco;</li>
     </ul>
-    <p>Os pagamentos poderão ser processados por plataformas externas (Shopify). A Low Wear não tem acesso aos dados completos do cartão bancário do cliente.</p>
+    <p>Os pagamentos poderão ser processados por plataformas externas (Stripe). A Low Wear não tem acesso aos dados completos do cartão bancário do cliente.</p>
     <p>A encomenda poderá ficar pendente até à confirmação do pagamento.</p>
     <p>Se o pagamento for recusado, cancelado ou não confirmado dentro do prazo apresentado, a encomenda poderá ser automaticamente cancelada.</p>
 
