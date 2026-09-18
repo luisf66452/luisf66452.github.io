@@ -1,15 +1,15 @@
 /* ============================================================
-   Low Wear — Promoção de inauguração "Escolha 6, pague 3"
+   Low Wear — Promoção "Escolha 6, pague 3"
    All dates/rules come from LWD.PROMO_CONFIG (js/data.js) — this file
    only renders UI off that config and off LWD.isPromoActive(). It never
    invents its own dates or eligibility logic.
 
    Honesty note: this file only builds the on-site preview (bar, hero,
    countdown, badges, popup, cart-progress hookup). The discount that
-   actually lands at checkout is Shopify's own "Buy X get Y" automatic
-   discount — see the setup note printed in initPromoCheckoutNote() and
-   the admin instructions delivered separately. Nothing here can set a
-   real price; only Shopify's discount engine can.
+   actually lands at checkout is applied server-side, by our own Vercel
+   function (api/create-checkout-session.js), which marks the cheapest
+   eligible units as free before creating the Stripe Checkout Session.
+   Nothing here can set a real price; only that server-side function can.
    ============================================================ */
 (() => {
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
@@ -92,11 +92,11 @@
 
     popupRoot.innerHTML = `
       <div class="promo-popup-scrim"></div>
-      <div class="promo-popup" role="dialog" aria-modal="true" aria-label="Promoção de inauguração">
+      <div class="promo-popup" role="dialog" aria-modal="true" aria-label="Promoção por tempo limitado">
         <button class="promo-popup-close" type="button" aria-label="Fechar">
           <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
-        <p class="promo-popup-kicker">O SITE ABRIU COM UMA OFERTA GIGANTE.</p>
+        <p class="promo-popup-kicker">ÚLTIMA CHAMADA.</p>
         <p class="promo-popup-headline">ESCOLHA 6 CAMISAS E PAGUE APENAS 3</p>
         <p class="promo-popup-text">Adicione seis camisas participantes ao carrinho e as três de menor valor ficam grátis automaticamente.</p>
         <a href="index.html#catalogo" class="btn btn-primary promo-popup-cta">COMEÇAR A ESCOLHER</a>
