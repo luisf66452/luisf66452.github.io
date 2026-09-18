@@ -282,270 +282,147 @@
     return list.includes(productId);
   }
 
-  // Products checking out for real through Shopify. Shared here (rather than
-  // in js/main.js) so admin.html and js/flash-offer.js can also use it
-  // without loading the whole storefront script.
-  const SHOPIFY_PRODUCTS = {
-    'sel-principal-24': { shopifyProductId: '16381716201821' },
-    'sel-especial-24': { shopifyProductId: '16381717447005' },
-    'sel-alt-24': { shopifyProductId: '16381716857181' },
-    'fla-principal-24': { shopifyProductId: '16381717807453' },
-    'fla-alt-24': { shopifyProductId: '16381718331741' },
-    'fla-extra-24': { shopifyProductId: '16381721051485' },
-    'cor-principal-24': { shopifyProductId: '16381721215325' },
-    'cor-extra-24': { shopifyProductId: '16381721674077' },
-    'sao-principal-24': { shopifyProductId: '16381721903453' },
-    'sao-retro': { shopifyProductId: '16381722263901' },
-    'pal-principal-24': { shopifyProductId: '16381722362205' },
-    'pal-retro': { shopifyProductId: '16381722624349' },
-    'santos-principal-24': { shopifyProductId: '16381722755421' },
-    'santos-extra-24': { shopifyProductId: '16381723050333' },
-    'cru-principal-24': { shopifyProductId: '16381724131677' },
-    'cru-alt-24': { shopifyProductId: '16381724328285' },
-    'por-alt-24': { shopifyProductId: '16399668969821' },
-    'por-principal-24': { shopifyProductId: '16399700427101' },
-    'ben-principal-24': { shopifyProductId: '16399717335389' },
-    'ben-extra-24': { shopifyProductId: '16399721202013' },
-    'spo-alt-24': { shopifyProductId: '16399729262941' },
-    'spo-principal-24': { shopifyProductId: '16399734440285' },
-    'fcp-principal-24': { shopifyProductId: '16399739027805' },
-    'fcp-extra-24': { shopifyProductId: '16399744172381' },
-  };
+  /* ============================================================
+     CARRINHO LOCAL + CHECKOUT VIA STRIPE
+     ------------------------------------------------------------
+     Antes, o carrinho vivia num "cart" real da Shopify (Storefront API)
+     e o botão de checkout mandava o cliente para o checkout hospedado
+     pela Shopify. Essa loja Shopify foi apagada, por isso essa parte
+     deixou de existir.
+     Esta versão guarda o carrinho no localStorage do próprio browser
+     (tal como já acontecia com os favoritos) e, só no momento de
+     finalizar a compra, envia o conteúdo do carrinho para uma função
+     do site (uma "serverless function" na Vercel) que:
+       1) calcula o preço a partir do catálogo do servidor (nunca confia
+          no preço vindo do browser);
+       2) aplica a promoção "escolha 6, pague 3" se estiver ativa;
+       3) cria uma sessão de pagamento real na Stripe e devolve o link
+          para onde o cliente deve ser enviado para pagar.
 
-  /* ---------------- Shopify Storefront API ---------------- */
-  const SHOPIFY_DOMAIN = 'rbdfwr-dv.myshopify.com';
-  const SHOPIFY_STOREFRONT_TOKEN = 'e8db550bd1d8b8f84400bf90b6df3bf6';
-  const SHOPIFY_API_VERSION = '2024-01';
+     IMPORTANTE — depois de publicar a função na Vercel (ver pasta
+     /api ao lado deste ficheiro e o README), troque o valor abaixo pelo
+     URL real que a Vercel lhe der, por exemplo:
+       'https://lowwear-checkout.vercel.app/api/create-checkout-session'
+     ============================================================ */
+  const CHECKOUT_API_URL = 'https://low-wear-2.vercel.app/api/create-checkout-session';
+  const NEWSLETTER_API_URL = 'https://low-wear-2.vercel.app/api/newsletter';
 
-  async function shopifyGraphQL(query, variables) {
-    const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN },
-      body: JSON.stringify({ query, variables }),
+  const CART_KEY = 'lw_cart_v1';
+
+  function loadCart() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CART_KEY));
+      if (raw && Array.isArray(raw.lines)) return raw;
+    } catch { /* ignora carrinho corrompido */ }
+    return { lines: [] };
+  }
+
+  function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    return cart;
+  }
+
+  function makeLineId() {
+    return 'l_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  }
+
+  // unitPrice aqui é só para o cliente conseguir mostrar o total no
+  // carrinho — o valor que conta a sério é sempre recalculado no
+  // servidor (api/create-checkout-session.js) a partir do id do produto.
+  function unitPriceFor(product, customName) {
+    return product.price + (customName ? 8 : 0);
+  }
+
+  function addCartLine({ productId, size, quantity, customName, version }) {
+    const product = getProduct(productId);
+    if (!product) throw new Error('produto desconhecido');
+    quantity = Math.max(1, quantity || 1);
+    customName = (customName || '').trim();
+    const cart = loadCart();
+    // junta a uma linha existente do mesmo produto/tamanho/personalização
+    const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === (version || ''));
+    if (existing) {
+      existing.quantity += quantity;
+    } else {
+      cart.lines.push({
+        id: makeLineId(), productId, size, quantity, customName, version: version || '',
+        unitPrice: unitPriceFor(product, customName), addedAt: Date.now(),
+      });
+    }
+    return saveCart(cart);
+  }
+
+  function updateCartLineQty(lineId, quantity) {
+    const cart = loadCart();
+    const line = cart.lines.find((l) => l.id === lineId);
+    if (!line) return cart;
+    line.quantity = Math.max(1, quantity);
+    return saveCart(cart);
+  }
+
+  function removeCartLine(lineId) {
+    const cart = loadCart();
+    cart.lines = cart.lines.filter((l) => l.id !== lineId);
+    return saveCart(cart);
+  }
+
+  function clearCart() {
+    return saveCart({ lines: [] });
+  }
+
+  function cartTotals(cart) {
+    const subtotal = cart.lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
+    return { subtotal, total: subtotal }; // desconto real só é confirmado no checkout (servidor)
+  }
+
+  // Envia o carrinho para a função de checkout e devolve o URL da Stripe
+  // para onde a página deve redirecionar o cliente.
+  async function goToStripeCheckout(cart) {
+    const lines = [];
+    cart.lines.forEach((l) => {
+      for (let i = 0; i < l.quantity; i++) {
+        lines.push({ productId: l.productId, size: l.size, quantity: 1, customName: l.customName });
+      }
     });
-    return res.json();
+    const res = await fetch(CHECKOUT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lines }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.url) throw new Error(data.message || data.error || 'checkout_failed');
+    return data.url;
   }
 
-  async function fetchShopifyVariants(productId) {
-    const result = await shopifyGraphQL(
-      `query($id: ID!) { product(id: $id) { variants(first: 20) { edges { node {
-        id availableForSale selectedOptions { name value }
-      } } } } }`,
-      { id: `gid://shopify/Product/${productId}` }
-    );
-    return result?.data?.product?.variants?.edges.map((e) => e.node) || [];
-  }
-
-  function pickShopifyVariant(variants, size) {
-    if (!variants.length) return null;
-    if (variants.length === 1) return variants[0];
-    const match = variants.find((v) => v.selectedOptions.some((o) => o.value.toUpperCase() === String(size).toUpperCase()));
-    return match || variants[0];
-  }
-
-  async function createShopifyCheckout(variantId, attributes) {
-    // No discount code param: any discount comes from a Shopify *automatic*
-    // discount (Shopify Admin → Discounts → Automatic), which applies itself
-    // to eligible carts without needing a code passed here.
-    const result = await shopifyGraphQL(
-      `mutation($input: CartInput!) { cartCreate(input: $input) {
-        cart { checkoutUrl }
-        userErrors { field message }
-      } }`,
-      { input: { lines: [{ quantity: 1, merchandiseId: variantId, attributes }] } }
-    );
-    const errors = result?.data?.cartCreate?.userErrors;
-    if (errors && errors.length) throw new Error(errors.map((e) => e.message).join(', '));
-    return result?.data?.cartCreate?.cart?.checkoutUrl || null;
-  }
-
-  // Creates a throwaway cart for one unit of the variant to see whether
-  // Shopify applies an automatic discount to it, and if so, how much. Used
-  // by the Flash Offer engine to find a product that currently has a real
-  // discount configured in Shopify, and to read the real percentage back
-  // instead of guessing one client-side.
-  async function checkShopifyAutomaticDiscount(variantId) {
-    // Note: cart.cost.subtotalAmount is already computed *after* per-line
-    // (product-level) automatic discounts, so it equals totalAmount even
-    // when a discount applied — comparing those two would miss it. The
-    // undiscounted price only survives on the line's amountPerQuantity, so
-    // that's what has to be compared against the line's discounted total.
-    const result = await shopifyGraphQL(
-      `mutation($input: CartInput!) { cartCreate(input: $input) {
-        cart { lines(first: 1) { edges { node {
-          cost { totalAmount { amount } amountPerQuantity { amount } }
-        } } } }
-        userErrors { field message }
-      } }`,
-      { input: { lines: [{ quantity: 1, merchandiseId: variantId }] } }
-    );
-    const line = result?.data?.cartCreate?.cart?.lines?.edges?.[0]?.node;
-    if (!line) return { pct: 0 };
-    const undiscounted = parseFloat(line.cost.amountPerQuantity.amount);
-    const total = parseFloat(line.cost.totalAmount.amount);
-    if (!(undiscounted > 0) || !(total < undiscounted)) return { pct: 0 };
-    const pct = Math.round((1 - total / undiscounted) * 100);
-    return { pct };
-  }
-
-  // Signs an email up for marketing consent as a real Shopify customer (the
-  // newsletter list you see in Shopify Admin → Customers), instead of just
-  // showing a success toast and throwing the address away. customerCreate
-  // requires a password even for a "just subscribe" signup, so we generate
-  // a random one the visitor never sees — they can set their own later via
-  // "forgot password" if they ever want to log in to an account.
-  async function shopifyNewsletterSignup(email) {
-    const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(18)))
-      .map((b) => b.toString(36)).join('').slice(0, 24) + 'Aa1!';
-    const result = await shopifyGraphQL(
-      `mutation($input: CustomerCreateInput!) { customerCreate(input: $input) {
-        customer { id }
-        customerUserErrors { field message code }
-      } }`,
-      { input: { email, password: randomPassword, acceptsMarketing: true } }
-    );
-    const errors = result?.data?.customerCreate?.customerUserErrors || [];
-    const alreadySubscribed = errors.some((e) => e.code === 'TAKEN');
-    if (errors.length && !alreadySubscribed) throw new Error(errors.map((e) => e.message).join(', '));
+  // Inscrição na newsletter — ver api/newsletter.js (sem Shopify, guarda
+  // o email nos logs da função por agora; ver comentário nesse ficheiro
+  // para ligar a um serviço de email marketing a sério).
+  async function newsletterSignup(email) {
+    const res = await fetch(NEWSLETTER_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) throw new Error('newsletter_failed');
     return true;
   }
 
-  /* ---------------- persistent multi-item cart ----------------
-     Previously every "Adicionar ao carrinho" / "Comprar agora" click
-     created a brand-new one-item Shopify cart and redirected straight to
-     checkout. That made it impossible for a customer to ever hold more
-     than one product at once, which breaks any multi-item promotion (e.g.
-     "buy 6 pay 3") since Shopify can only apply that discount if all 6
-     lines are sitting in the SAME cart when checkout is reached. These
-     functions manage one real Shopify cart, persisted by id in
-     localStorage, that lines get added to over time. */
-  const CART_FIELDS = `
-    id checkoutUrl
-    discountCodes { code applicable }
-    cost { subtotalAmount { amount } totalAmount { amount } }
-    lines(first: 100) { edges { node {
-      id quantity attributes { key value }
-      cost { totalAmount { amount } amountPerQuantity { amount } }
-      merchandise { ... on ProductVariant {
-        id title
-        product { id title }
-      } }
-    } } }
-  `;
-
-  function parseCart(cart) {
-    if (!cart) return null;
-    return {
-      id: cart.id,
-      checkoutUrl: cart.checkoutUrl,
-      subtotal: parseFloat(cart.cost.subtotalAmount.amount),
-      total: parseFloat(cart.cost.totalAmount.amount),
-      discountCodes: (cart.discountCodes || []).map((d) => ({ code: d.code, applicable: d.applicable })),
-      lines: cart.lines.edges.map((e) => ({
-        id: e.node.id,
-        quantity: e.node.quantity,
-        attributes: e.node.attributes,
-        lineTotal: parseFloat(e.node.cost.totalAmount.amount),
-        unitPrice: parseFloat(e.node.cost.amountPerQuantity.amount),
-        variantId: e.node.merchandise.id,
-        variantTitle: e.node.merchandise.title,
-        productId: e.node.merchandise.product.id.replace('gid://shopify/Product/', ''),
-        productTitle: e.node.merchandise.product.title,
-      })),
-    };
-  }
-
-  async function createShopifyCart(variantId, quantity, attributes) {
-    const result = await shopifyGraphQL(
-      `mutation($input: CartInput!) { cartCreate(input: $input) { cart { ${CART_FIELDS} } userErrors { field message } } }`,
-      { input: { lines: [{ quantity, merchandiseId: variantId, attributes }] } }
-    );
-    const errors = result?.data?.cartCreate?.userErrors;
-    if (errors && errors.length) throw new Error(errors.map((e) => e.message).join(', '));
-    return parseCart(result?.data?.cartCreate?.cart);
-  }
-
-  async function addShopifyCartLine(cartId, variantId, quantity, attributes) {
-    const result = await shopifyGraphQL(
-      `mutation($cartId: ID!, $lines: [CartLineInput!]!) { cartLinesAdd(cartId: $cartId, lines: $lines) { cart { ${CART_FIELDS} } userErrors { field message } } }`,
-      { cartId, lines: [{ quantity, merchandiseId: variantId, attributes }] }
-    );
-    const errors = result?.data?.cartLinesAdd?.userErrors;
-    if (errors && errors.length) throw new Error(errors.map((e) => e.message).join(', '));
-    return parseCart(result?.data?.cartLinesAdd?.cart);
-  }
-
-  async function removeShopifyCartLine(cartId, lineId) {
-    const result = await shopifyGraphQL(
-      `mutation($cartId: ID!, $lineIds: [ID!]!) { cartLinesRemove(cartId: $cartId, lineIds: $lineIds) { cart { ${CART_FIELDS} } userErrors { field message } } }`,
-      { cartId, lineIds: [lineId] }
-    );
-    const errors = result?.data?.cartLinesRemove?.userErrors;
-    if (errors && errors.length) throw new Error(errors.map((e) => e.message).join(', '));
-    return parseCart(result?.data?.cartLinesRemove?.cart);
-  }
-
-  async function updateShopifyCartLine(cartId, lineId, quantity) {
-    const result = await shopifyGraphQL(
-      `mutation($cartId: ID!, $lines: [CartLineUpdateInput!]!) { cartLinesUpdate(cartId: $cartId, lines: $lines) { cart { ${CART_FIELDS} } userErrors { field message } } }`,
-      { cartId, lines: [{ id: lineId, quantity }] }
-    );
-    const errors = result?.data?.cartLinesUpdate?.userErrors;
-    if (errors && errors.length) throw new Error(errors.map((e) => e.message).join(', '));
-    return parseCart(result?.data?.cartLinesUpdate?.cart);
-  }
-
-  async function fetchShopifyCart(cartId) {
-    const result = await shopifyGraphQL(
-      `query($id: ID!) { cart(id: $id) { ${CART_FIELDS} } }`,
-      { id: cartId }
-    );
-    return parseCart(result?.data?.cart);
-  }
-
-  // Redeems a real Shopify discount code (created in Shopify Admin →
-  // Discounts) against the live cart. Shopify itself decides whether the
-  // code is valid/applicable — we never compute a discount client-side.
-  async function applyShopifyDiscountCode(cartId, code) {
-    const result = await shopifyGraphQL(
-      `mutation($cartId: ID!, $codes: [String!]!) { cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $codes) { cart { ${CART_FIELDS} } userErrors { field message } } }`,
-      { cartId, codes: [code] }
-    );
-    const errors = result?.data?.cartDiscountCodesUpdate?.userErrors;
-    if (errors && errors.length) throw new Error(errors.map((e) => e.message).join(', '));
-    return parseCart(result?.data?.cartDiscountCodesUpdate?.cart);
-  }
-
-  async function removeShopifyDiscountCode(cartId) {
-    const result = await shopifyGraphQL(
-      `mutation($cartId: ID!) { cartDiscountCodesUpdate(cartId: $cartId, discountCodes: []) { cart { ${CART_FIELDS} } userErrors { field message } } }`,
-      { cartId }
-    );
-    const errors = result?.data?.cartDiscountCodesUpdate?.userErrors;
-    if (errors && errors.length) throw new Error(errors.map((e) => e.message).join(', '));
-    return parseCart(result?.data?.cartDiscountCodesUpdate?.cart);
-  }
-
-  const Shopify = {
-    PRODUCTS: SHOPIFY_PRODUCTS,
-    fetchVariants: fetchShopifyVariants,
-    pickVariant: pickShopifyVariant,
-    createCheckout: createShopifyCheckout,
-    checkAutomaticDiscount: checkShopifyAutomaticDiscount,
-    newsletterSignup: shopifyNewsletterSignup,
-    createCart: createShopifyCart,
-    addCartLine: addShopifyCartLine,
-    removeCartLine: removeShopifyCartLine,
-    updateCartLine: updateShopifyCartLine,
-    getCart: fetchShopifyCart,
-    applyDiscountCode: applyShopifyDiscountCode,
-    removeDiscountCode: removeShopifyDiscountCode,
+  const Cart = {
+    load: loadCart,
+    addLine: addCartLine,
+    updateLineQty: updateCartLineQty,
+    removeLine: removeCartLine,
+    clear: clearCart,
+    totals: cartTotals,
+    checkout: goToStripeCheckout,
+    newsletterSignup,
   };
 
   window.LowWearData = {
-    TEAMS, PRODUCTS, TYPE_LABEL, SHOPIFY_PRODUCTS, Shopify,
+    TEAMS, PRODUCTS, TYPE_LABEL,
     euro, getTeam, getProduct, getProductsByTeam, fullName, jerseySVG, productMedia, productGallery,
     weeklyFeaturedProduct,
     PROMO_CONFIG, isPromoActive, isPromoEligible,
+    Cart,
   };
 })();
