@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Encomenda confirmada | Low Wear</title>
+  <link rel="icon" href="favicon.ico">
+  <style>
+    :root{--ink:#11120f;--paper:#f1f1eb;--green:#26ef72;--muted:#676861;--line:#d9dad2}
+    *{box-sizing:border-box}body{margin:0;background:var(--ink);color:var(--ink);font-family:Arial,Helvetica,sans-serif;min-height:100vh}.top{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,5vw,72px);color:#fff;border-bottom:1px solid #30312d}.brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900;letter-spacing:5px}.secure{font-size:12px;color:#b9bbb3;letter-spacing:1px}.page{min-height:calc(100vh - 72px);padding:clamp(24px,5vw,72px);background:linear-gradient(140deg,#f3f3ed,#e7e8df)}.card{max-width:920px;margin:auto;background:#fff;border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.14);overflow:hidden}.hero{padding:clamp(28px,6vw,64px);border-bottom:1px solid var(--line)}.check{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:var(--green);font-size:28px;font-weight:900;margin-bottom:24px}.eyebrow{font-size:11px;letter-spacing:2.6px;font-weight:800;color:#167c3d}.hero h1{font-size:clamp(36px,7vw,72px);line-height:.92;letter-spacing:-3px;text-transform:uppercase;margin:12px 0 18px;max-width:680px}.lead{font-size:clamp(16px,2.2vw,20px);line-height:1.6;color:var(--muted);max-width:690px;margin:0}.reference{display:inline-flex;gap:10px;align-items:center;margin-top:22px;padding:11px 14px;background:var(--paper);border-radius:8px;font:700 12px ui-monospace,monospace}.body{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr);gap:34px;padding:clamp(24px,5vw,54px)}h2{font-size:15px;letter-spacing:1.7px;text-transform:uppercase;margin:0 0 18px}.items{border-top:1px solid var(--line)}.item{display:flex;justify-content:space-between;gap:18px;padding:16px 0;border-bottom:1px solid var(--line)}.item strong{font-size:13px;line-height:1.45}.item span{font:700 12px ui-monospace,monospace;white-space:nowrap}.total{display:flex;justify-content:space-between;padding:20px 0;font-size:18px}.steps{list-style:none;padding:0;margin:0}.steps li{position:relative;padding:0 0 26px 34px;color:var(--muted);font-size:14px;line-height:1.45}.steps li:before{content:'';position:absolute;left:4px;top:2px;width:14px;height:14px;border:2px solid #babcb4;border-radius:50%;background:#fff}.steps li:after{content:'';position:absolute;left:11px;top:20px;width:1px;height:20px;background:#cfd0ca}.steps li:last-child:after{display:none}.steps li.done{color:var(--ink);font-weight:700}.steps li.done:before{border-color:var(--green);background:var(--green);box-shadow:inset 0 0 0 3px #fff}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}.btn{display:inline-flex;min-height:48px;align-items:center;justify-content:center;padding:0 20px;border-radius:7px;text-decoration:none;text-transform:uppercase;font-size:12px;font-weight:900;letter-spacing:1px}.btn-primary{background:var(--ink);color:#fff}.btn-secondary{border:1px solid var(--ink);color:var(--ink)}.error{background:#fff3d8;border:1px solid #efcd79;padding:14px;border-radius:8px;color:#6d5314;font-size:14px;line-height:1.5}.skeleton{height:56px;margin:8px 0;background:linear-gradient(90deg,#eee,#f8f8f8,#eee);background-size:200% 100%;animation:pulse 1.2s infinite}@keyframes pulse{to{background-position:-200% 0}}@media(max-width:720px){.secure{display:none}.body{grid-template-columns:1fr}.hero h1{letter-spacing:-2px}.page{padding:16px}.card{border-radius:14px}}
+  </style>
+</head>
+<body>
+  <header class="top"><a class="brand" href="index.html">LOW · WEAR</a><span class="secure">PAGAMENTO SEGURO · STRIPE</span></header>
+  <main class="page">
+    <article class="card">
+      <section class="hero">
+        <div class="check" id="status-icon">✓</div>
+        <div class="eyebrow" id="status-kicker">A CONFIRMAR PAGAMENTO</div>
+        <h1 id="status-title">Só mais um instante.</h1>
+        <p class="lead" id="status-copy">Estamos a confirmar a encomenda diretamente com a Stripe.</p>
+        <div class="reference" id="order-reference" hidden>ENCOMENDA <strong></strong></div>
+      </section>
+      <section class="body">
+        <div>
+          <h2>Resumo da encomenda</h2>
+          <div id="order-content"><div class="skeleton"></div><div class="skeleton"></div></div>
+          <div class="actions"><a class="btn btn-primary" href="index.html">Continuar a comprar</a><a class="btn btn-secondary" href="mailto:Lowwear@gmail.com">Preciso de ajuda</a></div>
+        </div>
+        <aside>
+          <h2>Próximos passos</h2>
+          <ol class="steps">
+            <li id="step-payment">Pagamento confirmado</li>
+            <li id="step-email">Confirmação da encomenda</li>
+            <li>Preparação e controlo das peças</li>
+            <li>Expedição e acompanhamento</li>
+          </ol>
+        </aside>
+      </section>
+    </article>
+  </main>
+  <script>
+    (() => {
+      const API = 'https://low-wear-2.vercel.app/api/order-status';
+      const params = new URLSearchParams(location.search);
+      const sessionId = params.get('session_id') || '';
+      const money = (value, currency) => value == null ? '' : new Intl.NumberFormat('pt-PT', { style:'currency', currency:currency || 'EUR' }).format(value);
+      const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const content = document.querySelector('#order-content');
+
+      function showError(message) {
+        document.querySelector('#status-icon').textContent = '!';
+        document.querySelector('#status-kicker').textContent = 'CONFIRMAÇÃO PENDENTE';
+        document.querySelector('#status-title').textContent = 'A encomenda está a ser verificada.';
+        document.querySelector('#status-copy').textContent = 'O pagamento não será repetido. Pode voltar a esta página ou contactar o apoio caso a confirmação demore.';
+        content.innerHTML = '<div class="error">' + esc(message) + '</div>';
+      }
+
+      function showOrder(order) {
+        if (!order.paid) return showError('A Stripe ainda está a processar o pagamento. Atualize esta página dentro de alguns instantes.');
+        try { localStorage.removeItem('lw_cart_v1'); } catch {}
+        document.querySelector('#status-kicker').textContent = 'PAGAMENTO CONFIRMADO';
+        document.querySelector('#status-title').textContent = 'Obrigado pela confiança.';
+        document.querySelector('#status-copy').textContent = (order.customerName ? order.customerName.split(' ')[0] + ', a' : 'A') + ' sua encomenda já está registada e vai seguir para preparação.' + (order.customerEmail ? ' Contacto: ' + order.customerEmail + '.' : '');
+        document.querySelector('#step-payment').classList.add('done');
+        const ref = document.querySelector('#order-reference');
+        ref.hidden = false; ref.querySelector('strong').textContent = order.orderReference;
+        const items = (order.items || []).map(item => '<div class="item"><strong>' + esc(item.name) + '<br><small>Quantidade: ' + esc(item.quantity) + '</small></strong><span>' + esc(money(item.amount, order.currency)) + '</span></div>').join('');
+        content.innerHTML = '<div class="items">' + items + '</div><div class="total"><strong>Total pago</strong><strong>' + esc(money(order.amountTotal, order.currency)) + '</strong></div>';
+        if (order.confirmationEmailEnabled) document.querySelector('#step-email').classList.add('done');
+      }
+
+      async function load(attempt = 0) {
+        if (!/^cs_/.test(sessionId)) return showError('Não encontrámos uma referência de pagamento válida nesta ligação.');
+        try {
+          const response = await fetch(API + '?session_id=' + encodeURIComponent(sessionId), { cache:'no-store' });
+          const data = await response.json();
+          if (response.status === 202 && attempt < 4) return setTimeout(() => load(attempt + 1), 2500);
+          if (!response.ok && response.status !== 202) throw new Error('Não foi possível consultar a encomenda agora.');
+          showOrder(data);
+        } catch (error) { showError(error.message); }
+      }
+      load();
+    })();
+  </script>
+</body>
+</html>
+
