@@ -3,6 +3,12 @@
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
   const LWD = window.LowWearData;
   const euro = LWD.euro;
+
+  function metaTrack(eventName, params = {}) {
+    if (typeof window.fbq !== 'function') return;
+    window.fbq('track', eventName, params);
+  }
+
   const CUSTOMER_REVIEWS = [
     ['Uma experiência para repetir', 'Desde a escolha das peças até receber a encomenda, correu tudo bem. Fiquei contente com a compra e vou continuar a acompanhar a Low Wear.'],
     ['Tudo certo com a encomenda', 'Recebi os artigos que escolhi, bem apresentados e sem problemas. Foi a minha primeira compra na Low Wear e fiquei satisfeito.'],
@@ -36,6 +42,19 @@
 
   function addLineToCart({ productId, size, customName, version, badge }) {
     cart = LWD.Cart.addLine({ productId, size, quantity: 1, customName, version, badge });
+
+    const product = LWD.getProduct(productId);
+    if (product) {
+      const value = product.price + (customName ? 8 : 0) + (badge ? 2.9 : 0);
+      metaTrack('AddToCart', {
+        content_ids: [productId],
+        content_type: 'product',
+        content_name: LWD.fullName(product),
+        value: Number(value.toFixed(2)),
+        currency: 'EUR',
+      });
+    }
+
     updateCounts();
     renderCart();
     return cart;
@@ -562,6 +581,15 @@
     btn.disabled = true;
     btn.textContent = 'A preparar o pagamento…';
     try {
+      const totals = LWD.Cart.totals(cart);
+      metaTrack('InitiateCheckout', {
+        content_ids: [...new Set(cart.lines.map(line => line.productId))],
+        content_type: 'product',
+        num_items: cart.lines.reduce((total, line) => total + line.quantity, 0),
+        value: Number(totals.total.toFixed(2)),
+        currency: 'EUR',
+      });
+
       const url = await LWD.Cart.checkout(cart);
       window.location.href = url;
     } catch (err) {
@@ -616,6 +644,14 @@
     const id = params.get('id') || LWD.PRODUCTS[0].id;
     const p = LWD.getProduct(id) || LWD.PRODUCTS[0];
     const team = LWD.getTeam(p.teamSlug);
+
+    metaTrack('ViewContent', {
+      content_ids: [p.id],
+      content_type: 'product',
+      content_name: LWD.fullName(p),
+      value: Number(p.price.toFixed(2)),
+      currency: 'EUR',
+    });
 
     document.title = `${LWD.fullName(p)} | Low Wear`;
     $('#breadcrumb-team').textContent = team.name;
