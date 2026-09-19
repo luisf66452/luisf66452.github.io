@@ -3,6 +3,17 @@
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
   const LWD = window.LowWearData;
   const euro = LWD.euro;
+  const CUSTOMER_REVIEWS = [
+    ['Uma experiência para repetir', 'Desde a escolha das peças até receber a encomenda, correu tudo bem. Fiquei contente com a compra e vou continuar a acompanhar a Low Wear.'],
+    ['Tudo certo com a encomenda', 'Recebi os artigos que escolhi, bem apresentados e sem problemas. Foi a minha primeira compra na Low Wear e fiquei satisfeito.'],
+    ['Gostei muito do corte!', 'Tinha algum receio de comprar roupa online, mas o tamanho ficou como queria. A peça funciona bem com vários looks.'],
+    ['Uma boa escolha para oferecer', 'Comprei uma peça para oferecer e acertei em cheio. A pessoa adorou o estilo e ficou logo a perguntar pela loja.'],
+    ['Simples e com estilo', 'Era exatamente o tipo de roupa que procurava: descontraída, confortável e fácil de usar. Gostei especialmente de como assenta.'],
+    ['Estilo e conforto no dia a dia', 'Já usei várias vezes e sinto-me sempre confortável. São daquelas peças que acabam por sair do armário todas as semanas.'],
+    ['Já quero encomendar outra vez!', 'As peças são confortáveis e fáceis de combinar. Comprei para experimentar e fiquei com vontade de escolher mais.'],
+    ['Atendimento impecável', 'Precisava de ajuda com o tamanho e a equipa foi muito atenciosa. A sugestão que me deram assentou mesmo bem.'],
+    ['Superou as expectativas!', 'Gostei das peças nas fotografias, mas ao vivo gostei ainda mais. Bons detalhes e um corte que resulta muito bem.'],
+  ];
 
   /* ---------------- carrinho + checkout (Stripe) ----------------
      Antes, isto falava com a Storefront API da Shopify. Essa loja
@@ -843,17 +854,7 @@
     });
     renderBundleSlots();
 
-    const reviews = [
-      ['Uma experiência para repetir', 'Desde a escolha das peças até receber a encomenda, correu tudo bem. Fiquei contente com a compra e vou continuar a acompanhar a Low Wear.'],
-      ['Tudo certo com a encomenda', 'Recebi os artigos que escolhi, bem apresentados e sem problemas. Foi a minha primeira compra na Low Wear e fiquei satisfeito.'],
-      ['Gostei muito do corte!', 'Tinha algum receio de comprar roupa online, mas o tamanho ficou como queria. A peça funciona bem com vários looks.'],
-      ['Uma boa escolha para oferecer', 'Comprei uma peça para oferecer e acertei em cheio. A pessoa adorou o estilo e ficou logo a perguntar pela loja.'],
-      ['Simples e com estilo', 'Era exatamente o tipo de roupa que procurava: descontraída, confortável e fácil de usar. Gostei especialmente de como assenta.'],
-      ['Estilo e conforto no dia a dia', 'Já usei várias vezes e sinto-me sempre confortável. São daquelas peças que acabam por sair do armário todas as semanas.'],
-      ['Já quero encomendar outra vez!', 'As peças são confortáveis e fáceis de combinar. Comprei para experimentar e fiquei com vontade de escolher mais.'],
-      ['Atendimento impecável', 'Precisava de ajuda com o tamanho e a equipa foi muito atenciosa. A sugestão que me deram assentou mesmo bem.'],
-      ['Superou as expectativas!', 'Gostei das peças nas fotografias, mas ao vivo gostei ainda mais. Bons detalhes e um corte que resulta muito bem.'],
-    ];
+    const reviews = CUSTOMER_REVIEWS;
     const reviewsGrid = $('#pdp-reviews-grid');
     if (reviewsGrid) {
       reviewsGrid.innerHTML = reviews.map(([title, body], i) => `<article class="review-card" aria-label="Avaliação ${i + 1} de ${reviews.length}">
@@ -968,6 +969,46 @@
       wireProductGrid(relatedGrid);
     }
   }
+  function initHomeReviews() {
+    const track = $('#home-reviews-track');
+    const viewport = $('#home-reviews-viewport');
+    const progress = $('#home-reviews-progress');
+    if (!track || !viewport || !progress) return;
+
+    track.innerHTML = CUSTOMER_REVIEWS.map(([title, body], i) => `<article class="review-card" aria-label="Avaliação ${i + 1} de ${CUSTOMER_REVIEWS.length}">
+      <div class="review-stars" aria-label="5 estrelas">★★★★★</div><h4>${title}</h4><p>${body}</p>
+      <div class="review-brand">CLIENTE LOW WEAR</div></article>`).join('');
+
+    const updateProgress = () => {
+      const max = Math.max(1, viewport.scrollWidth - viewport.clientWidth);
+      progress.style.width = `${Math.max(12, ((viewport.scrollLeft / max) * 88) + 12)}%`;
+    };
+    const move = (direction) => {
+      const card = $('.review-card', viewport);
+      const step = card ? card.getBoundingClientRect().width + 16 : viewport.clientWidth;
+      const atEnd = viewport.scrollLeft + viewport.clientWidth >= viewport.scrollWidth - 8;
+      if (direction > 0 && atEnd) viewport.scrollTo({ left: 0, behavior: 'smooth' });
+      else viewport.scrollBy({ left: step * direction, behavior: 'smooth' });
+    };
+    $('#home-reviews-prev')?.addEventListener('click', () => move(-1));
+    $('#home-reviews-next')?.addEventListener('click', () => move(1));
+    viewport.addEventListener('scroll', updateProgress, { passive: true });
+
+    let timer = null;
+    const stop = () => clearInterval(timer);
+    const start = () => {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      stop();
+      timer = setInterval(() => move(1), 4200);
+    };
+    viewport.addEventListener('pointerenter', stop);
+    viewport.addEventListener('pointerleave', start);
+    viewport.addEventListener('touchstart', stop, { passive: true });
+    viewport.addEventListener('touchend', start, { passive: true });
+    updateProgress();
+    start();
+  }
+
   /* ---------------- boot ---------------- */
   renderTeamGrid($('#team-grid'));
   renderWeeklySpotlight($('#spotlight-grid'));
@@ -975,6 +1016,7 @@
   if ($('#catalog-grid')) renderCatalog();
   initTeamPage();
   initProductPage();
+  initHomeReviews();
   updateCounts();
   observeReveals();
   renderCart();

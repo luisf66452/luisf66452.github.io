@@ -24,6 +24,7 @@
 
   function timeLeftParts(now) {
     const end = new Date(CFG.promotionEnd).getTime();
+    if (!Number.isFinite(end)) return null;
     const ms = Math.max(0, end - now);
     return {
       ms,
@@ -44,7 +45,9 @@
   /* ---------------- countdown (shared by bar + hero section) ---------------- */
   let countdownTimer = null;
   function tickCountdown() {
-    const { ms, days, hours, minutes, seconds } = timeLeftParts(Date.now());
+    const remaining = timeLeftParts(Date.now());
+    if (!remaining) { deactivateCampaign(); return; }
+    const { ms, days, hours, minutes, seconds } = remaining;
     $$('.promo-countdown-d').forEach((el) => { el.textContent = days; });
     $$('.promo-countdown-h').forEach((el) => { el.textContent = fmt2(hours); });
     $$('.promo-countdown-m').forEach((el) => { el.textContent = fmt2(minutes); });
@@ -141,15 +144,19 @@
 
   /* ---------------- fill in the dates wherever the config text appears ---------------- */
   function fillDateText() {
-    const startStr = new Date(CFG.promotionStart).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long' });
-    const endStr = new Date(CFG.promotionEnd).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' });
+    const start = new Date(CFG.promotionStart);
+    const end = new Date(CFG.promotionEnd);
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return false;
+    const startStr = start.toLocaleDateString('pt-PT', { day: '2-digit', month: 'long' });
+    const endStr = end.toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' });
     $$('.promo-date-start').forEach((el) => { el.textContent = startStr; });
     $$('.promo-date-end').forEach((el) => { el.textContent = endStr; });
+    return true;
   }
 
   function init() {
     if (!LWD.isPromoActive()) { deactivateCampaign(); return; }
-    fillDateText();
+    if (!fillDateText()) { deactivateCampaign(); return; }
     activateCampaign();
     schedulePopup();
     window.addEventListener('resize', layoutPromoBar);
