@@ -45,6 +45,7 @@ html{ scroll-behavior:smooth; }
 
 body{
   margin:0;
+  overflow-x:clip;
   background:var(--bg);
   color:var(--ink);
   font-family:var(--font-body);
@@ -1658,4 +1659,12 @@ body.no-scroll{ overflow:hidden; }
   .pdp-sticky-buy .btn{ padding:12px 8px; font-size:10px; }
 }
 @media (prefers-reduced-motion:reduce){ .pdp-sticky-buy,.reviews-progress span{ transition:none; } }
+
+/* Avaliações visíveis logo após a oferta principal. */
+.home-reviews{ padding:clamp(54px,7vw,92px) 0; background:var(--bg-raise); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.home-reviews .section-head{ margin-bottom:28px; }
+.home-reviews .section-head h2{ font-family:var(--font-display); font-size:clamp(34px,5vw,62px); line-height:.94; text-transform:uppercase; }
+.home-reviews .review-card{ color:#171812; }
+.home-reviews-note{ margin-top:20px; color:var(--muted); font-size:12px; text-align:center; }
+.home-reviews-note a{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
 
