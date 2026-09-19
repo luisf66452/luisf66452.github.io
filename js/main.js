@@ -665,6 +665,8 @@
     const separateSpin = gallery.length > 1 && p.spin && p.spin.length > 1;
     thumbsEl.innerHTML = gallery.map((media, i) => `<button class="pdp-thumb${i === 0 ? ' is-active' : ''}${hasPhoto ? ' has-photo' : ''}" aria-label="Imagem ${i + 1}">${media}</button>`).join('');
     if (separateSpin) {
+      mainOuter.classList.add('has-studio-gallery');
+      thumbsEl.classList.add('has-studio-gallery');
       thumbsEl.insertAdjacentHTML('beforeend', '<button class="pdp-thumb has-photo" aria-label="Vista 360°"><img src="' + p.spin[0] + '" alt="Vista 360°"><span>360°</span></button>');
     }
     mainOuter.classList.toggle('has-photo', hasPhoto);
