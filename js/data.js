@@ -270,7 +270,7 @@
   };
 
   function isPromoActive(now) {
-    now = now || Date.now();
+    now = now ?? Date.now();
     if (!PROMO_CONFIG.promotionEnabled) return false;
     const start = new Date(PROMO_CONFIG.promotionStart).getTime();
     const end = new Date(PROMO_CONFIG.promotionEnd).getTime();
@@ -290,7 +290,7 @@
      produto (produto.html / js/main.js initProductPage). O desconto real
      é aplicado no servidor (api/create-checkout-session.js), que nunca
      soma este desconto com o da promoção sazonal — aplica sempre o maior
-     dos dois, nunca os dois juntos. Editar só este objeto para mudar os
+     dos dois, nunca os dois juntos. Manter este objeto e api/_catalog.js do backend sincronizados ao mudar os
      escalões ou desligar a promoção (enabled: false).
      ============================================================ */
   const TIER_CONFIG = {
@@ -322,7 +322,7 @@
     if (!TIER_CONFIG.enabled) return null;
     let best = null;
     for (const t of TIER_CONFIG.tiers) {
-      if (quantity >= t.threshold) best = t;
+      if (quantity >= t.threshold && (!best || t.threshold > best.threshold)) best = t;
     }
     return best;
   }
@@ -421,14 +421,55 @@
     return saveCart({ lines: [] });
   }
 
-  function cartTotals(cart) {
-    const subtotal = cart.lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
-    return { subtotal, total: subtotal }; // desconto real só é confirmado no checkout (servidor)
+// Mantido em espelho no frontend/backend; os testes verificam a paridade.
+function calculatePromotion(units, now = Date.now()) {
+  const empty = () => ({ freeIndexes: new Set(), value: 0, label: '' });
+  const eligible = (config) => units.map((u, idx) => ({
+    idx, price: Math.round(u.unitPrice * 100), productId: u.product.id,
+  })).filter(u => !config.eligibleProducts?.length || config.eligibleProducts.includes(u.productId))
+    .sort((a, b) => a.price - b.price);
+  const candidate = (items, count, label) => {
+    const free = items.slice(0, count);
+    return { freeIndexes: new Set(free.map(u => u.idx)),
+      value: free.reduce((sum, u) => sum + u.price, 0), label: free.length ? label : '' };
+  };
+  let seasonal = empty();
+  if (isPromoActive(now)) {
+    const items = eligible(PROMO_CONFIG);
+    const applications = Math.min(Math.floor(items.length / PROMO_CONFIG.requiredQuantity),
+      PROMO_CONFIG.maximumApplicationsPerOrder);
+    seasonal = candidate(items, applications * PROMO_CONFIG.freeQuantity,
+      'Escolha ' + PROMO_CONFIG.requiredQuantity + ', pague ' + (PROMO_CONFIG.requiredQuantity - PROMO_CONFIG.freeQuantity));
+  }
+  const items = eligible(TIER_CONFIG);
+  const tier = bestTierFor(items.length);
+  const quantity = tier ? candidate(items, tier.threshold - tier.pay,
+    'Leva ' + tier.threshold + ', paga ' + tier.pay) : empty();
+  // Compara valores monetários, nunca soma as ofertas. Em empate, mostra o escalão.
+  return quantity.value >= seasonal.value ? quantity : seasonal;
+}
+
+  function cartTotals(cart, now = Date.now()) {
+    const units = [];
+    for (const line of cart.lines) {
+      const product = getProduct(line.productId);
+      if (!product || !Number.isInteger(line.quantity) || line.quantity < 1) continue;
+      const customName = typeof line.customName === 'string' ? line.customName.trim().slice(0, 40) : '';
+      for (let i = 0; i < line.quantity; i++) {
+        units.push({ product, unitPrice: unitPriceFor(product, customName) });
+      }
+    }
+    const subtotalCents = units.reduce((sum, u) => sum + Math.round(u.unitPrice * 100), 0);
+    const promotion = calculatePromotion(units, now);
+    return { subtotal: subtotalCents / 100, discount: promotion.value / 100,
+      total: (subtotalCents - promotion.value) / 100, freeUnits: promotion.freeIndexes.size,
+      promotion: promotion.label };
   }
 
   // Envia o carrinho para a função de checkout e devolve o URL da Stripe
   // para onde a página deve redirecionar o cliente.
   async function goToStripeCheckout(cart) {
+    // Continua compatível com o backend anterior durante a publicação.
     const lines = [];
     cart.lines.forEach((l) => {
       for (let i = 0; i < l.quantity; i++) {
