@@ -23,8 +23,8 @@
 
   const saveFavs = () => localStorage.setItem(STORE_KEY_FAV, JSON.stringify(favs));
 
-  function addLineToCart({ productId, size, customName, version, badge, badgePrice }) {
-    cart = LWD.Cart.addLine({ productId, size, quantity: 1, customName, version, badge, badgePrice });
+  function addLineToCart({ productId, size, customName, version }) {
+    cart = LWD.Cart.addLine({ productId, size, quantity: 1, customName, version });
     updateCounts();
     renderCart();
     return cart;
@@ -173,7 +173,7 @@
       const p = LWD.getProduct(line.productId);
       const name = p ? LWD.fullName(p) : line.productId;
       const media = p ? LWD.productMedia(p) : '';
-      const extras = [line.version, line.customName ? `"${line.customName}"` : '', line.badge ? `Emblema ${line.badge}` : ''].filter(Boolean).join(' · ');
+      const extras = [line.version, line.customName ? `"${line.customName}"` : ''].filter(Boolean).join(' · ');
       return `
       <div class="cart-line" data-line-id="${line.id}">
         <div class="cl-media${media.startsWith('<img') ? ' has-photo' : ''}">${media}</div>
@@ -623,62 +623,34 @@
       ? `<span>${euro(p.price)}</span><span class="was">${euro(p.was)}</span>`
       : `<span>${euro(p.price)}</span>`;
 
-    // ---- Avaliações (textos reais fornecidos pela loja, sem nomes/fotos inventados) ----
-    const REVIEWS = [
-      { title: 'Superou as expectativas!', body: 'Gostei das peças nas fotografias, mas ao vivo gostei ainda mais. Bons detalhes e um corte que resulta muito bem.' },
-      { title: 'Estilo e conforto no dia a dia', body: 'Já usei várias vezes e sinto-me sempre confortável. São daquelas peças que acabam por sair do armário todas as semanas.' },
-      { title: 'Tudo certo com a encomenda', body: 'Recebi os artigos que escolhi, bem apresentados e sem problemas. Foi a minha primeira compra na Low Wear e fiquei satisfeito.' },
-      { title: 'Uma boa escolha para oferecer', body: 'Comprei uma peça para oferecer e acertei em cheio. A pessoa adorou o estilo e ficou logo a perguntar pela loja.' },
-      { title: 'Gostei muito do corte!', body: 'Tinha algum receio de comprar roupa online, mas o tamanho ficou como queria. A peça funciona bem com vários looks.' },
-    ];
-    const ratingLink = $('#pdp-rating-link');
-    if (ratingLink) {
-      $('#pdp-rating-count').textContent = `${REVIEWS.length} avaliações`;
-      ratingLink.style.display = 'inline-flex';
-    }
-    const reviewsGrid = $('#pdp-reviews-grid');
-    if (reviewsGrid) {
-      reviewsGrid.innerHTML = REVIEWS.map(r => `
-        <div class="review-card">
-          <div class="review-stars">★★★★★</div>
-          <h4>${r.title}</h4>
-          <p>${r.body}</p>
-          <div class="review-brand">LOW WEAR</div>
-        </div>`).join('');
-    }
-
-    // ---- Ícones de pagamento (mesmos métodos já assumidos no rodapé) ----
-    const payEl = $('#pdp-payments');
-    if (payEl) {
-      payEl.innerHTML = ['Visa', 'Mastercard', 'PayPal'].map(m => `<span class="pay-chip">${m}</span>`).join('');
-    }
-
-    // ---- Tabela "Quanto mais levas, mais poupas" (informativa nesta página;
-    // a aplicação real do desconto no pagamento depende da função do
-    // servidor no repositório do checkout, tal como a promoção 6-por-3). ----
-    const QTY_TIERS = [
-      { leva: 3, paga: 2, off: 33 },
-      { leva: 6, paga: 3, off: 50 },
-      { leva: 9, paga: 4, off: 56 },
-      { leva: 12, paga: 5, off: 58 },
-      { leva: 15, paga: 6, off: 60 },
-    ];
-    const qtyTableEl = $('#qty-discount-table');
-    if (qtyTableEl) {
-      qtyTableEl.innerHTML = QTY_TIERS.map(t => `
-        <div class="qty-tier">
-          <span class="qty-tier-leva">Leva ${t.leva}</span>
-          <span class="qty-tier-paga">Paga ${t.paga}</span>
-          <span class="qty-tier-off">-${t.off}%</span>
-        </div>`).join('');
-    }
-
     const promoBadgeEl = $('#pdp-promo-badge');
     if (promoBadgeEl) {
       promoBadgeEl.innerHTML = (p.availability !== 'esgotado' && LWD.isPromoActive() && LWD.isPromoEligible(p.id))
         ? `<div class="promo-card-badge promo-pdp-badge">LEVE 6 · PAGUE 3</div>
            <p class="promo-pdp-note">Produto participante da promoção de inauguração. <a href="#" class="js-promo-how">Ver regras da promoção</a></p>`
         : '';
+    }
+
+    // Tabela "quanto mais levas, mais poupas" — promoção permanente por
+    // escalões, independente da promoção sazonal acima. Ver js/data.js
+    // (TIER_CONFIG) para os escalões e api/create-checkout-session.js para
+    // a regra de não-acumulação (aplica-se sempre o maior desconto, nunca
+    // os dois juntos).
+    const tiersEl = $('#pdp-tiers');
+    const tiersGridEl = $('#pdp-tiers-grid');
+    if (tiersEl && tiersGridEl) {
+      const tiersApply = p.availability !== 'esgotado' && LWD.TIER_CONFIG.enabled && LWD.isTierEligible(p.id);
+      tiersEl.hidden = !tiersApply;
+      if (tiersApply) {
+        tiersGridEl.innerHTML = LWD.TIER_CONFIG.tiers.map((t) => {
+          const pct = LWD.tierDiscountPercent(t);
+          return `<div class="pdp-tier-card">
+            <p class="pdp-tier-qty">Leva ${t.threshold}</p>
+            <p class="pdp-tier-pay">Paga ${t.pay}</p>
+            <p class="pdp-tier-pct">-${pct}%</p>
+          </div>`;
+        }).join('');
+      }
     }
 
     if (p.tag) {
@@ -776,18 +748,6 @@
       }));
     }
 
-    const badgeWrap = $('#badge-options');
-    let selectedBadge = '';
-    let selectedBadgePrice = 0;
-    if (badgeWrap) {
-      $$('.badge-chip', badgeWrap).forEach(chip => chip.addEventListener('click', () => {
-        $$('.badge-chip', badgeWrap).forEach(c => c.classList.remove('is-selected'));
-        chip.classList.add('is-selected');
-        selectedBadge = chip.dataset.badge || '';
-        selectedBadgePrice = parseFloat(chip.dataset.price || '0') || 0;
-      }));
-    }
-
     const pdpTabs = $$('.pdp-tab-btn');
     pdpTabs.forEach(btn => btn.addEventListener('click', () => {
       pdpTabs.forEach(b => b.classList.remove('is-active'));
@@ -804,9 +764,8 @@
       if (nameInput?.value || numInput?.value) custom = `${nameInput.value.toUpperCase()} ${numInput.value}`.trim();
       return {
         id: p.id, name: LWD.fullName(p), type: LWD.TYPE_LABEL[p.type],
-        price: p.price + (custom ? 8 : 0) + selectedBadgePrice, size: selected.textContent.trim(),
+        price: p.price + (custom ? 8 : 0), size: selected.textContent.trim(),
         custom, version: versionWrap ? selectedVersion : '',
-        badge: selectedBadge, badgePrice: selectedBadgePrice,
         media: gallery[0],
       };
     }
@@ -816,7 +775,7 @@
       const item = buildPdpProduct();
       if (!item) return;
       if (p.availability === 'esgotado') { showToast('Este produto está esgotado.'); return; }
-      addLineToCart({ productId: p.id, size: item.size, customName: item.custom, version: item.version, badge: item.badge, badgePrice: item.badgePrice });
+      addLineToCart({ productId: p.id, size: item.size, customName: item.custom, version: item.version });
       if (goToCheckout) {
         $('#checkout-btn')?.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
       } else {
