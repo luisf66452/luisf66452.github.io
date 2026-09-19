@@ -471,6 +471,16 @@ function calculatePromotion(units, now = Date.now()) {
 
   // Envia o carrinho para a função de checkout e devolve o URL da Stripe
   // para onde a página deve redirecionar o cliente.
+  function getCookie(name) {
+    const prefix = name + '=';
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const value = cookie.trim();
+      if (value.startsWith(prefix)) return decodeURIComponent(value.slice(prefix.length));
+    }
+    return '';
+  }
+
   async function goToStripeCheckout(cart) {
     // Continua compatível com o backend anterior durante a publicação.
     const lines = [];
@@ -483,7 +493,13 @@ function calculatePromotion(units, now = Date.now()) {
     const res = await fetch(CHECKOUT_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lines }),
+      body: JSON.stringify({
+        lines,
+        meta: {
+          fbp: getCookie('_fbp'),
+          fbc: getCookie('_fbc'),
+        },
+      }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.url) throw new Error(data.message || data.error || 'checkout_failed');
