@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=photo1">
+<link rel="stylesheet" href="css/style.css?v=pdp2">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c29fdf9a79b44d268ce283fa1ff48e87"}'></script><!-- End Cloudflare Web Analytics -->
 <link rel="icon" href="favicon.ico?v=2" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32.png?v=2">
@@ -170,12 +170,6 @@
       <div class="pdp-price" id="pdp-price"></div>
       <div id="pdp-promo-badge"></div>
 
-      <div class="pdp-tiers" id="pdp-tiers" hidden>
-        <p class="pdp-tiers-title">QUANTO MAIS LEVAS, MAIS POUPAS</p>
-        <div class="pdp-tiers-grid" id="pdp-tiers-grid"></div>
-        <p class="pdp-tiers-note">Desconto aplicado automaticamente no checkout pelas unidades mais baratas do carrinho. Não acumula com outras promoções.</p>
-      </div>
-
       <div class="pdp-block">
         <div class="pdp-block-head">
           <h4>Tamanho</h4>
@@ -196,6 +190,13 @@
 
       <div class="pdp-block" id="personalize-block">
         <div class="pdp-block-head"><h4>Personalizar (opcional, +8,00 €)</h4></div>
+        <select class="player-preset" id="player-preset" aria-label="Escolha rápida de nome e número">
+          <option value="">Escolha rápida de nome e número</option>
+          <option value="CAMISA 10|10">CAMISA 10 · Nº 10</option>
+          <option value="CAPITÃO|7">CAPITÃO · Nº 7</option>
+          <option value="GOLEADOR|9">GOLEADOR · Nº 9</option>
+          <option value="CRAQUE|11">CRAQUE · Nº 11</option>
+        </select>
         <div class="personalize-row">
           <input type="text" id="custom-name" maxlength="12" placeholder="Nome (ex. SILVA)">
           <input type="text" id="custom-number" maxlength="2" inputmode="numeric" placeholder="Nº">
@@ -211,15 +212,12 @@
         </div>
       </div>
 
-      <div class="pdp-block" id="qty-discount-block">
-        <div class="pdp-block-head"><h4>Quanto mais levas, mais poupas</h4></div>
-        <div class="qty-discount-table" id="qty-discount-table"></div>
-        <p class="qty-discount-note">Desconto aplicado no momento do pagamento a camisas participantes. <a href="#" class="js-promo-how">Ver como funciona</a>.</p>
-      </div>
-
       <div class="pdp-actions">
         <button class="btn btn-primary" id="pdp-add-cart">Adicionar ao carrinho</button>
         <button class="btn btn-dark" id="pdp-buy-now" style="background:var(--paper);">Comprar agora</button>
+      </div>
+      <div class="pdp-quick-trust" aria-label="Informações de compra">
+        <span>✓ Pagamento seguro</span><span>✓ Envio com rastreio</span><span>✓ Apoio por e-mail</span>
       </div>
       <div class="pdp-payments" id="pdp-payments" aria-label="Métodos de pagamento aceites"></div>
       <button class="fav-btn" id="pdp-fav-btn" aria-label="Adicionar aos favoritos" style="position:static;margin-top:4px;width:auto;height:auto;padding:10px 16px;border-radius:var(--radius-s);display:inline-flex;gap:8px;align-items:center;font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;">
@@ -231,8 +229,34 @@
         <li><svg viewBox="0 0 24 24"><path d="M3 10a7 7 0 0 1 12-5l2 2"/><path d="M17 4v5h-5"/><path d="M21 14a7 7 0 0 1-12 5l-2-2"/><path d="M7 20v-5h5"/></svg> Trocas gratuitas até 2 dias após a receção</li>
         <li><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5Z"/><path d="m9 12 2 2 4-4"/></svg> Pagamento 100% seguro e encriptado</li>
       </ul>
+
+      <div class="pdp-tiers" id="pdp-tiers" hidden>
+        <p class="pdp-tiers-title">QUANTO MAIS LEVAS, MAIS POUPAS</p>
+        <div class="pdp-tiers-grid" id="pdp-tiers-grid"></div>
+        <p class="pdp-tiers-note">Aplicamos apenas o maior desconto disponível. As promoções não acumulam.</p>
+      </div>
     </div>
   </div>
+
+  <section class="bundle-builder" id="monte-o-conjunto">
+    <div class="bundle-builder-head">
+      <div>
+        <p class="bundle-kicker">MONTE O SEU CONJUNTO</p>
+        <h2>Escolha as camisolas<br>e os tamanhos</h2>
+      </div>
+      <p>Selecione 3, 6 ou 9 camisolas, escolha o tamanho de cada uma e adicione o conjunto inteiro ao carrinho. O maior desconto é aplicado automaticamente no checkout.</p>
+    </div>
+    <div class="bundle-qty" id="bundle-qty" role="group" aria-label="Quantidade do conjunto">
+      <button type="button" class="is-selected" data-count="3">Leva 3 · paga 2</button>
+      <button type="button" data-count="6">Leva 6 · paga 3</button>
+      <button type="button" data-count="9">Leva 9 · paga 4</button>
+    </div>
+    <div class="bundle-slots" id="bundle-slots"></div>
+    <div class="bundle-footer">
+      <p id="bundle-summary">3 camisolas selecionadas</p>
+      <button type="button" class="btn btn-primary" id="bundle-add">Adicionar conjunto ao carrinho</button>
+    </div>
+  </section>
 
   <div class="pdp-tabs" role="tablist">
     <button class="pdp-tab-btn is-active" data-tab="descricao" role="tab">Descrição</button>
@@ -260,10 +284,23 @@
     </ul>
   </div>
   <section id="pdp-reviews" style="padding-bottom:70px;">
-    <div class="section-head">
-      <h2>O que dizem<br>os nossos clientes</h2>
+    <div class="section-head reviews-heading">
+      <div>
+        <p class="bundle-kicker">AVALIAÇÕES LOW WEAR</p>
+        <h2>O que dizem<br>os nossos clientes</h2>
+      </div>
+      <div class="reviews-score"><strong>5,0</strong><span>★★★★★<br>9 avaliações</span></div>
     </div>
-    <div class="reviews-grid" id="pdp-reviews-grid"></div>
+    <div class="reviews-carousel" id="reviews-carousel" aria-label="Avaliações de clientes">
+      <div class="reviews-viewport">
+        <div class="reviews-track" id="pdp-reviews-grid"></div>
+      </div>
+      <div class="reviews-controls">
+        <button type="button" id="reviews-prev" aria-label="Avaliação anterior">←</button>
+        <div class="reviews-progress"><span id="reviews-progress-fill"></span></div>
+        <button type="button" id="reviews-next" aria-label="Próxima avaliação">→</button>
+      </div>
+    </div>
   </section>
 
   <section style="padding-bottom:70px;">
@@ -272,6 +309,15 @@
     </div>
     <div class="related-scroller" id="related-grid"></div>
   </section>
+</div>
+
+<div class="pdp-sticky-buy" id="pdp-sticky-buy" aria-hidden="true">
+  <div class="pdp-sticky-product">
+    <div id="pdp-sticky-thumb"></div>
+    <div><strong id="pdp-sticky-name">Camisa</strong><span id="pdp-sticky-price">0,00 €</span></div>
+  </div>
+  <select id="pdp-sticky-size" aria-label="Tamanho"></select>
+  <button type="button" class="btn btn-primary" id="pdp-sticky-add">Adicionar ao carrinho</button>
 </div>
 
 <!-- ============ NEWSLETTER ============ -->
@@ -1063,9 +1109,10 @@
 <div id="flash-popup-root"></div>
 <div id="promo-popup-root"></div>
 
-<script src="js/data.js?v=71"></script>
-<script src="js/main.js?v=52"></script>
+<script src="js/data.js?v=pdp2"></script>
+<script src="js/main.js?v=pdp2"></script>
 <script src="js/flash-offer.js?v=5"></script>
 <script src="js/promo.js?v=1"></script>
 </body>
 </html>
+

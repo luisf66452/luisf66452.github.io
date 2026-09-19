@@ -380,24 +380,26 @@
   // unitPrice aqui é só para o cliente conseguir mostrar o total no
   // carrinho — o valor que conta a sério é sempre recalculado no
   // servidor (api/create-checkout-session.js) a partir do id do produto.
-  function unitPriceFor(product, customName) {
-    return product.price + (customName ? 8 : 0);
+  function unitPriceFor(product, customName, badge) {
+    return product.price + (customName ? 8 : 0) + (badge ? 2.9 : 0);
   }
 
-  function addCartLine({ productId, size, quantity, customName, version }) {
+  function addCartLine({ productId, size, quantity, customName, version, badge }) {
     const product = getProduct(productId);
     if (!product) throw new Error('produto desconhecido');
     quantity = Math.max(1, quantity || 1);
     customName = (customName || '').trim();
+    badge = badge === 'Mundial 2026' ? badge : '';
+    version = version === 'Jogador' ? 'Jogador' : 'Adepto';
     const cart = loadCart();
     // junta a uma linha existente do mesmo produto/tamanho/personalização
-    const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === (version || ''));
+    const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === version && (l.badge || '') === badge);
     if (existing) {
       existing.quantity += quantity;
     } else {
       cart.lines.push({
-        id: makeLineId(), productId, size, quantity, customName, version: version || '',
-        unitPrice: unitPriceFor(product, customName), addedAt: Date.now(),
+        id: makeLineId(), productId, size, quantity, customName, version, badge,
+        unitPrice: unitPriceFor(product, customName, badge), addedAt: Date.now(),
       });
     }
     return saveCart(cart);
@@ -455,8 +457,9 @@ function calculatePromotion(units, now = Date.now()) {
       const product = getProduct(line.productId);
       if (!product || !Number.isInteger(line.quantity) || line.quantity < 1) continue;
       const customName = typeof line.customName === 'string' ? line.customName.trim().slice(0, 40) : '';
+      const badge = line.badge === 'Mundial 2026' ? line.badge : '';
       for (let i = 0; i < line.quantity; i++) {
-        units.push({ product, unitPrice: unitPriceFor(product, customName) });
+        units.push({ product, unitPrice: unitPriceFor(product, customName, badge) });
       }
     }
     const subtotalCents = units.reduce((sum, u) => sum + Math.round(u.unitPrice * 100), 0);
@@ -473,7 +476,8 @@ function calculatePromotion(units, now = Date.now()) {
     const lines = [];
     cart.lines.forEach((l) => {
       for (let i = 0; i < l.quantity; i++) {
-        lines.push({ productId: l.productId, size: l.size, quantity: 1, customName: l.customName });
+        lines.push({ productId: l.productId, size: l.size, quantity: 1,
+          customName: l.customName, version: l.version, badge: l.badge });
       }
     });
     const res = await fetch(CHECKOUT_API_URL, {
@@ -519,3 +523,4 @@ function calculatePromotion(units, now = Date.now()) {
     Cart,
   };
 })();
+
