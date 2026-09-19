@@ -195,8 +195,11 @@
 
     const totalsEl = $('#drawer-totals');
     if (totalsEl) {
-      const { subtotal } = LWD.Cart.totals(cart);
-      totalsEl.innerHTML = `<div class="drawer-subtotal"><span>Total</span><strong>${euro(subtotal)}</strong></div>`;
+      const { subtotal, discount, total, promotion } = LWD.Cart.totals(cart);
+      totalsEl.innerHTML = (discount ? `<div class="drawer-subtotal"><span>Subtotal</span><strong>${euro(subtotal)}</strong></div>
+        <div class="drawer-subtotal"><span>${promotion}</span><strong>−${euro(discount)}</strong></div>` : '') +
+        `<div class="drawer-subtotal"><span>Total estimado</span><strong>${euro(total)}</strong></div>`;
+
     }
     renderCouponUI();
     renderPromoProgress(lines);
@@ -237,47 +240,37 @@
   function renderPromoProgress(lines) {
     const el = $('#cart-promo-progress');
     if (!el) return;
-    if (!LWD.isPromoActive()) { el.style.display = 'none'; el.innerHTML = ''; return; }
-
-    const required = LWD.PROMO_CONFIG.requiredQuantity;
-    const freeQty = LWD.PROMO_CONFIG.freeQuantity;
-
-    const eligibleUnitPrices = [];
-    lines.forEach((line) => {
-      if (LWD.isPromoEligible(line.productId)) {
-        for (let i = 0; i < line.quantity; i++) eligibleUnitPrices.push(line.unitPrice);
+    const totals = LWD.Cart.totals({ lines });
+    if (totals.discount > 0) {
+      el.style.display = 'block';
+      el.innerHTML = `<div class="promo-progress-active">
+        <strong>🎉 ${totals.promotion}</strong>
+        <p>${totals.freeUnits} camisola(s) de oferta: as elegíveis de menor valor.</p>
+        <p class="promo-progress-savings">Poupança estimada: ${euro(totals.discount)} <span class="promo-progress-note">(confirmada no checkout)</span></p>
+        <p>Aplicamos apenas o maior desconto. As promoções não acumulam.</p>
+      </div>`;
+      return;
+    }
+    const countFor = eligible => lines.reduce((sum, line) => sum + (eligible(line.productId) ? line.quantity : 0), 0);
+    const nextOffers = [];
+    if (LWD.TIER_CONFIG.enabled) {
+      const count = countFor(LWD.isTierEligible);
+      for (const tier of LWD.TIER_CONFIG.tiers) {
+        if (tier.threshold > count) nextOffers.push({ remaining: tier.threshold - count,
+          label: 'Leva ' + tier.threshold + ', paga ' + tier.pay });
       }
-    });
-    const count = eligibleUnitPrices.length;
-    el.style.display = 'block';
-
-    if (count === 0) {
-      el.innerHTML = `<p class="promo-progress-text">Adicione ${required} camisas participantes da promoção de inauguração para ativar "Escolha ${required}, pague ${required - freeQty}".</p>`;
-      return;
     }
-    if (count >= required) {
-      const sorted = [...eligibleUnitPrices].sort((a, b) => a - b);
-      const freeTotal = sorted.slice(0, freeQty).reduce((s, v) => s + v, 0);
-      el.innerHTML = `
-        <div class="promo-progress-active">
-          <strong>🎉 PROMOÇÃO ATIVADA!</strong>
-          <p>Escolheu ${count} camisas participantes${count > required ? ` — a promoção aplica-se às primeiras ${required}` : ''}, e vai pagar apenas pelas ${required - freeQty} de maior valor.</p>
-          <p class="promo-progress-savings">Poupança estimada: ${euro(freeTotal)} <span class="promo-progress-note">(confirmada no checkout)</span></p>
-        </div>`;
-      return;
+    if (LWD.isPromoActive()) {
+      const config = LWD.PROMO_CONFIG;
+      const remaining = config.requiredQuantity - countFor(LWD.isPromoEligible);
+      if (remaining > 0 && config.maximumApplicationsPerOrder > 0) nextOffers.push({ remaining,
+        label: 'Escolha ' + config.requiredQuantity + ', pague ' + (config.requiredQuantity - config.freeQuantity) });
     }
-    const remaining = required - count;
-    const messages = {
-      1: 'Ótima escolha! Adicione mais 5 camisas para ativar a promoção.',
-      2: 'Faltam 4 camisas para desbloquear a promoção.',
-      3: 'Faltam 3 camisas para desbloquear a promoção.',
-      4: 'Faltam 2 camisas para desbloquear a promoção.',
-      5: 'Falta apenas 1 camisa para ativar a oferta.',
-    };
-    el.innerHTML = `
-      <p class="promo-progress-text">${messages[count] || `Faltam ${remaining} camisas para desbloquear a promoção.`}</p>
-      <div class="promo-progress-bar"><div class="promo-progress-fill" style="width:${Math.min(100, (count / required) * 100)}%"></div></div>
-      <a href="index.html#catalogo" class="btn btn-ghost btn-sm promo-progress-cta">ESCOLHER MAIS UMA</a>`;
+    nextOffers.sort((a, b) => a.remaining - b.remaining);
+    const next = nextOffers[0];
+    el.style.display = next ? 'block' : 'none';
+    el.innerHTML = next ? `<p class="promo-progress-text">Adicione mais ${next.remaining} camisola(s) elegíveis para ativar «${next.label}».</p>
+      <a href="index.html#catalogo" class="btn btn-ghost btn-sm promo-progress-cta">ESCOLHER MAIS UMA</a>` : '';
   }
 
   function updateCounts() {
@@ -813,3 +806,4 @@
 
   window.LowWear = { toggleFav, openOverlay, closeAllOverlays };
 })();
+
