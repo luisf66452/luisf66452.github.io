@@ -662,12 +662,30 @@
     const mainEl = $('#pdp-main-media');
     const zoomHint = $('#zoom-hint');
     const spinHint = $('#spin-hint');
+    const separateSpin = gallery.length > 1 && p.spin && p.spin.length > 1;
     thumbsEl.innerHTML = gallery.map((media, i) => `<button class="pdp-thumb${i === 0 ? ' is-active' : ''}${hasPhoto ? ' has-photo' : ''}" aria-label="Imagem ${i + 1}">${media}</button>`).join('');
+    if (separateSpin) {
+      thumbsEl.insertAdjacentHTML('beforeend', '<button class="pdp-thumb has-photo" aria-label="Vista 360°"><img src="' + p.spin[0] + '" alt="Vista 360°"><span>360°</span></button>');
+    }
     mainOuter.classList.toggle('has-photo', hasPhoto);
     mainEl.innerHTML = gallery[0];
     $$('.pdp-thumb', thumbsEl).forEach((thumb, i) => thumb.addEventListener('click', () => {
       $$('.pdp-thumb', thumbsEl).forEach(t => t.classList.remove('is-active'));
       thumb.classList.add('is-active');
+      if (separateSpin) {
+        const isSpin = i === gallery.length;
+        mainOuter.classList.toggle('has-spin', isSpin);
+        mainOuter.classList.remove('is-zoomed');
+        if (zoomHint) zoomHint.style.display = isSpin ? 'none' : '';
+        if (spinHint) spinHint.style.display = isSpin ? 'flex' : 'none';
+        if (spinSlider) spinSlider.style.display = isSpin ? 'block' : 'none';
+        if (isSpin) {
+          mainEl.innerHTML = '<img src="' + p.spin[0] + '" alt="' + LWD.fullName(p) + ' — vista 360°">';
+          if (spinFill) spinFill.style.width = '0%';
+          if (spinHandle) spinHandle.style.left = '0%';
+          return;
+        }
+      }
       mainEl.innerHTML = gallery[i];
     }));
 
@@ -690,7 +708,17 @@
         if (spinFill) spinFill.style.width = `${pct}%`;
         if (spinHandle) spinHandle.style.left = `${pct}%`;
       };
-      setFrame(0);
+      if (separateSpin) {
+        mainOuter.classList.remove('has-spin');
+        if (zoomHint) zoomHint.style.display = '';
+        if (spinHint) spinHint.style.display = 'none';
+        if (spinSlider) spinSlider.style.display = 'none';
+        mainOuter.addEventListener('click', () => {
+          if (!mainOuter.classList.contains('has-spin')) mainOuter.classList.toggle('is-zoomed');
+        });
+      } else {
+        setFrame(0);
+      }
       // Posição da bolinha na linha (0–100%) mapeia diretamente para o
       // frame do spin — arrastar em qualquer ponto da linha ou da bolinha
       // faz o mesmo efeito.

@@ -97,7 +97,7 @@
   const PRODUCTS = [
     // Seleção Brasileira
     P('sel-principal-24', 'selecao', 'principal', 'Amarelinha da Copa', '2024', 59.9, ['S','M','L'], 'Novo', 'disponivel', '#f6d21e', '#0b3d2e',
-      { photos: ['img/spin/selecao-principal/01.png'],
+      { photos: ['img/products/sel-principal-24/01-frente-ia.jpg', 'img/products/sel-principal-24/02-tres-quartos-ia.jpg', 'img/products/sel-principal-24/03-detalhe-ia.jpg', 'img/products/sel-principal-24/04-no-corpo-ia.jpg'],
         spin: ['img/spin/selecao-principal/01.png', 'img/spin/selecao-principal/02.png', 'img/spin/selecao-principal/03.png', 'img/spin/selecao-principal/04.png', 'img/spin/selecao-principal/05.png', 'img/spin/selecao-principal/06.png', 'img/spin/selecao-principal/07.png', 'img/spin/selecao-principal/08.png', 'img/spin/selecao-principal/09.png', 'img/spin/selecao-principal/10.png'] }),
     P('sel-alt-24', 'selecao', 'alternativa', 'Azul da Copa', '2024', 54.9, ['S','M','L'], 'Mais vendido', 'disponivel', '#0b3da0', '#f6d21e',
       { photos: ['img/spin/selecao-alt/01.png'],
