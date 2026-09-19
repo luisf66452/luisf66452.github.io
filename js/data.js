@@ -284,6 +284,56 @@
   }
 
   /* ============================================================
+     DESCONTO POR QUANTIDADE — "Quanto mais levas, mais poupas"
+     Promoção PERMANENTE (sem data de início/fim), separada da promoção
+     sazonal "Escolha 6, pague 3" acima. Mostrada apenas na página de
+     produto (produto.html / js/main.js initProductPage). O desconto real
+     é aplicado no servidor (api/create-checkout-session.js), que nunca
+     soma este desconto com o da promoção sazonal — aplica sempre o maior
+     dos dois, nunca os dois juntos. Editar só este objeto para mudar os
+     escalões ou desligar a promoção (enabled: false).
+     ============================================================ */
+  const TIER_CONFIG = {
+    enabled: true,
+    // Empty = every product in the catalog participates.
+    eligibleProducts: [],
+    // threshold = nº de unidades elegíveis no carrinho; pay = quantas
+    // dessas unidades são cobradas (as restantes, as mais baratas, ficam
+    // grátis). Itens além do último escalão atingido são cobrados a preço
+    // cheio (o desconto não continua a escalar indefinidamente).
+    tiers: [
+      { threshold: 3, pay: 2 },
+      { threshold: 6, pay: 3 },
+      { threshold: 9, pay: 4 },
+      { threshold: 12, pay: 5 },
+      { threshold: 15, pay: 6 },
+    ],
+  };
+
+  function isTierEligible(productId) {
+    const list = TIER_CONFIG.eligibleProducts;
+    if (!list || !list.length) return true;
+    return list.includes(productId);
+  }
+
+  // Devolve o escalão mais alto atingido por "quantity" unidades elegíveis,
+  // ou null se nenhum escalão for atingido.
+  function bestTierFor(quantity) {
+    if (!TIER_CONFIG.enabled) return null;
+    let best = null;
+    for (const t of TIER_CONFIG.tiers) {
+      if (quantity >= t.threshold) best = t;
+    }
+    return best;
+  }
+
+  // % de desconto (para mostrar na tabela) de um escalão.
+  function tierDiscountPercent(tier) {
+    if (!tier) return 0;
+    return Math.round((1 - tier.pay / tier.threshold) * 100);
+  }
+
+  /* ============================================================
      CARRINHO LOCAL + CHECKOUT VIA STRIPE
      ------------------------------------------------------------
      Antes, o carrinho vivia num "cart" real da Shopify (Storefront API)
@@ -330,29 +380,24 @@
   // unitPrice aqui é só para o cliente conseguir mostrar o total no
   // carrinho — o valor que conta a sério é sempre recalculado no
   // servidor (api/create-checkout-session.js) a partir do id do produto.
-  // Nota: tal como já acontecia com a personalização de nome/número, o
-  // acréscimo do emblema só é cobrado a sério na Stripe quando a função
-  // do servidor (noutro repositório) também souber somar esse valor.
-  function unitPriceFor(product, customName, badgePrice) {
-    return product.price + (customName ? 8 : 0) + (badgePrice || 0);
+  function unitPriceFor(product, customName) {
+    return product.price + (customName ? 8 : 0);
   }
 
-  function addCartLine({ productId, size, quantity, customName, version, badge, badgePrice }) {
+  function addCartLine({ productId, size, quantity, customName, version }) {
     const product = getProduct(productId);
     if (!product) throw new Error('produto desconhecido');
     quantity = Math.max(1, quantity || 1);
     customName = (customName || '').trim();
-    badge = (badge || '').trim();
-    badgePrice = badge ? (badgePrice || 0) : 0;
     const cart = loadCart();
-    // junta a uma linha existente do mesmo produto/tamanho/personalização/emblema
-    const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === (version || '') && (l.badge || '') === badge);
+    // junta a uma linha existente do mesmo produto/tamanho/personalização
+    const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === (version || ''));
     if (existing) {
       existing.quantity += quantity;
     } else {
       cart.lines.push({
-        id: makeLineId(), productId, size, quantity, customName, version: version || '', badge, badgePrice,
-        unitPrice: unitPriceFor(product, customName, badgePrice), addedAt: Date.now(),
+        id: makeLineId(), productId, size, quantity, customName, version: version || '',
+        unitPrice: unitPriceFor(product, customName), addedAt: Date.now(),
       });
     }
     return saveCart(cart);
@@ -429,6 +474,7 @@
     euro, getTeam, getProduct, getProductsByTeam, fullName, jerseySVG, productMedia, productGallery,
     weeklyFeaturedProduct,
     PROMO_CONFIG, isPromoActive, isPromoEligible,
+    TIER_CONFIG, isTierEligible, bestTierFor, tierDiscountPercent,
     Cart,
   };
 })();
