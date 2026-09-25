@@ -38,6 +38,25 @@ fbq('track','PageView');
 <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32.png?v=2">
 <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16.png?v=2">
 <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/favicon-180.png?v=2">
+<style id="lw-pdp-mobile">
+.pdp-extras{border:1px solid var(--line-strong);border-radius:var(--radius-s);margin:6px 0 18px;background:rgba(255,255,255,.02)}
+.pdp-extras>summary{cursor:pointer;list-style:none;padding:14px 16px;font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pdp-extras>summary::-webkit-details-marker{display:none}
+.pdp-extras>summary::after{content:"+";font-size:18px;line-height:1;color:var(--accent)}
+.pdp-extras[open]>summary::after{content:"\2013"}
+.pdp-extras>summary span{color:var(--muted);font-size:11px}
+.pdp-extras>.pdp-block{padding-left:16px;padding-right:16px}
+.pdp-sizes.needs-size{animation:lwNeedSize .9s ease 2;border-radius:10px}
+@keyframes lwNeedSize{0%,100%{box-shadow:0 0 0 0 rgba(60,255,107,0)}50%{box-shadow:0 0 0 3px rgba(60,255,107,.85)}}
+@media (max-width:640px){
+  .pdp-gallery{flex-direction:column;gap:10px}
+  .pdp-main-col{order:1}
+  .pdp-thumbs{order:2;flex-direction:row;width:auto;overflow-x:auto;gap:8px;scrollbar-width:none;padding-bottom:2px}
+  .pdp-thumbs::-webkit-scrollbar{display:none}
+  .pdp-thumbs .pdp-thumb{flex:0 0 58px;width:58px;height:58px}
+  .pdp-info{padding-bottom:90px}
+}
+</style>
 </head>
 <body class="no-hero" data-page="product">
 <noscript><img height="1" width="1" style="display:none" alt=""
@@ -204,6 +223,8 @@ src="https://www.facebook.com/tr?id=1074220551792024&ev=PageView&noscript=1"></n
         <p class="version-toggle-hint">A versão jogador tem corte mais justo e tecido de performance.</p>
       </div>
 
+      <details class="pdp-extras" id="pdp-extras">
+        <summary>Personalizar nome, número ou emblema <span>(opcional)</span></summary>
       <div class="pdp-block" id="personalize-block">
         <div class="pdp-block-head"><h4>Personalizar (opcional, +8,00 €)</h4></div>
         <select class="player-preset" id="player-preset" aria-label="Escolha rápida de nome e número">
@@ -227,6 +248,8 @@ src="https://www.facebook.com/tr?id=1074220551792024&ev=PageView&noscript=1"></n
           <button type="button" class="badge-chip" data-badge="Mundial 2026" data-price="2.9">Mundial 2026</button>
         </div>
       </div>
+
+      </details>
 
       <div class="pdp-actions">
         <button class="btn btn-primary" id="pdp-add-cart">Adicionar ao carrinho</button>
@@ -1125,8 +1148,8 @@ src="https://www.facebook.com/tr?id=1074220551792024&ev=PageView&noscript=1"></n
 <div id="flash-popup-root"></div>
 <div id="promo-popup-root"></div>
 
-<script src="js/data.js?v=pdp2"></script>
-<script src="js/main.js?v=pdp3"></script>
+<script src="js/data.js?v=pdp4"></script>
+<script src="js/main.js?v=pdp4"></script>
 <script src="js/flash-offer.js?v=5"></script>
 <script src="js/promo.js?v=2"></script>
 </body>
