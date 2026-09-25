@@ -941,7 +941,14 @@
     }));
     function buildPdpProduct() {
       const selected = $('.size-chip.is-selected', sizesEl);
-      if (!selected) { showToast('Escolha um tamanho'); return null; }
+      if (!selected) {
+        showToast('Escolha um tamanho');
+        if (sizesEl) {
+          sizesEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          sizesEl.classList.remove('needs-size'); void sizesEl.offsetWidth; sizesEl.classList.add('needs-size');
+        }
+        return null;
+      }
       let custom = '';
       if (nameInput?.value || numInput?.value) custom = `${nameInput.value.toUpperCase()} ${numInput.value}`.trim();
       return {
@@ -984,7 +991,9 @@
       $('#pdp-sticky-add')?.addEventListener('click', () => runAdd($('#pdp-sticky-add'), { goToCheckout: false }));
       const actions = $('.pdp-actions');
       const observer = actions && 'IntersectionObserver' in window ? new IntersectionObserver(([entry]) => {
-        const show = !entry.isIntersecting && window.scrollY > actions.offsetTop;
+        // Mostrar sempre que os botões principais não estão no ecrã (antes ou depois deles),
+        // para o botão de compra estar sempre à mão no telemóvel.
+        const show = !entry.isIntersecting;
         stickyBuy.classList.toggle('is-visible', show);
         stickyBuy.setAttribute('aria-hidden', String(!show));
       }, { threshold: 0.05 }) : null;
