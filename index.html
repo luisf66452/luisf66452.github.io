@@ -188,17 +188,78 @@ src="https://www.facebook.com/tr?id=1074220551792024&ev=PageView&noscript=1"></n
       </div>
       <p class="promo-hero-note">Promoção válida de <span class="promo-date-start">18 de setembro</span> até <span class="promo-date-end">09 de outubro de 2026</span>. Aplicam-se condições. <a href="#" class="js-promo-how">Ver regras da promoção</a></p>
     </div>
-    <style>.promo-hero-photo{display:block;border-radius:var(--radius-m);transition:transform .2s ease}.promo-hero-photo:hover{transform:translateY(-3px)}.promo-hero-photo:hover img{border-color:var(--promo-neon)}</style>
+    <style id="lw-hero-mobile">.promo-hero-photo{display:block;border-radius:var(--radius-m);transition:transform .2s ease}.promo-hero-photo:hover{transform:translateY(-3px)}.promo-hero-photo:hover img{border-color:var(--promo-neon)}.promo-hero-photos img{height:auto}
+@media (max-width:860px){
+  .promo-hero-main .promo-hero-grid{display:flex;flex-direction:column;gap:0}
+  .promo-hero-main .promo-hero-copy{display:contents}
+  .promo-hero-main .promo-eyebrow{order:1}
+  .promo-hero-main .promo-hero-title{order:2}
+  .promo-hero-main .promo-hero-title-2{order:3;margin-bottom:16px}
+  .promo-hero-main .promo-hero-photos{order:4;gap:8px;margin-bottom:18px}
+  .promo-hero-main .promo-hero-photos img{aspect-ratio:1/1}
+  .promo-hero-main .promo-hero-support{order:5;margin-bottom:16px}
+  .promo-hero-main .promo-hero-ctas{order:6;margin-bottom:24px}
+  .promo-hero-main .promo-countdown{order:7;margin:0 0 22px}
+  .promo-hero-main .hero-benefits{order:8}
+  .promo-hero-main .promo-hero-note{order:9}
+}</style>
     <div class="promo-hero-photos">
-      <a href="produto.html?id=sel-principal-24" class="promo-hero-photo" aria-label="Ver Amarelinha da Copa"><img src="img/spin/selecao-principal/01.png" alt="Amarelinha da Copa" loading="lazy"></a>
-      <a href="produto.html?id=fla-principal-24" class="promo-hero-photo" aria-label="Ver Manto Rubro-Negro"><img src="img/spin/flamengo-principal/01.png" alt="Manto Rubro-Negro" loading="lazy"></a>
-      <a href="produto.html?id=cor-principal-24" class="promo-hero-photo" aria-label="Ver Fiel Alvinegra"><img src="img/spin/corinthians-principal/01.png" alt="Fiel Alvinegra" loading="lazy"></a>
-      <a href="produto.html?id=sao-principal-24" class="promo-hero-photo" aria-label="Ver Soberana Tricolor New Balance"><img src="img/spin/sao-paulo-principal/01.png" alt="Soberana Tricolor New Balance" loading="lazy"></a>
-      <a href="produto.html?id=pal-principal-24" class="promo-hero-photo" aria-label="Ver Verdão Classico"><img src="img/spin/palmeiras-principal/01.png" alt="Verdão Classico" loading="lazy"></a>
-      <a href="produto.html?id=cru-principal-24" class="promo-hero-photo" aria-label="Ver Manto Celeste Azul"><img src="img/spin/cruzeiro-principal/01.png" alt="Manto Celeste Azul" loading="lazy"></a>
+      <a href="produto.html?id=sel-principal-24" class="promo-hero-photo" aria-label="Ver Amarelinha da Copa"><img src="img/spin-webp/selecao-principal/01.webp" alt="Amarelinha da Copa" width="800" height="1067" decoding="async"></a>
+      <a href="produto.html?id=fla-principal-24" class="promo-hero-photo" aria-label="Ver Manto Rubro-Negro"><img src="img/spin-webp/flamengo-principal/01.webp" alt="Manto Rubro-Negro" width="800" height="1067" decoding="async"></a>
+      <a href="produto.html?id=cor-principal-24" class="promo-hero-photo" aria-label="Ver Fiel Alvinegra"><img src="img/spin-webp/corinthians-principal/01.webp" alt="Fiel Alvinegra" width="800" height="1067" decoding="async"></a>
+      <a href="produto.html?id=sao-principal-24" class="promo-hero-photo" aria-label="Ver Soberana Tricolor New Balance"><img src="img/spin-webp/sao-paulo-principal/01.webp" alt="Soberana Tricolor New Balance" width="800" height="1067" decoding="async"></a>
+      <a href="produto.html?id=pal-principal-24" class="promo-hero-photo" aria-label="Ver Verdão Classico"><img src="img/spin-webp/palmeiras-principal/01.webp" alt="Verdão Classico" width="800" height="1067" decoding="async"></a>
+      <a href="produto.html?id=cru-principal-24" class="promo-hero-photo" aria-label="Ver Manto Celeste Azul"><img src="img/spin-webp/cruzeiro-principal/01.webp" alt="Manto Celeste Azul" width="800" height="1067" decoding="async"></a>
     </div>
   </div>
 </section>
+
+<!-- ============ CATÁLOGO ============ -->
+<section class="section-dark aurora-bg" id="catalogo">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2 class="heading-br-gradient">Catálogo<br>Brasileiro</h2>
+      <p class="section-sub">Seleção Brasileira e seis clubes. Filtre pela sua equipa, tipo, temporada, tamanho, preço ou disponibilidade.</p>
+    </div>
+
+    <div class="filter-bar">
+      <select id="f-equipa" aria-label="Filtrar por equipa ou seleção">
+        <option value="">Equipa / Seleção</option>
+        <option value="selecao">Seleção Brasileira</option>
+        <option value="flamengo">Flamengo</option>
+        <option value="corinthians">Corinthians</option>
+        <option value="sao-paulo">São Paulo</option>
+        <option value="palmeiras">Palmeiras</option>
+        <option value="santos">Santos</option>
+        <option value="cruzeiro">Cruzeiro</option>
+      </select>
+      <select id="f-tamanho" aria-label="Filtrar por tamanho">
+        <option value="">Tamanho</option>
+        <option value="S">S</option>
+        <option value="M">M</option>
+        <option value="L">L</option>
+        <option value="XL">XL</option>
+      </select>
+      <select id="f-preco" aria-label="Filtrar por faixa de preço">
+        <option value="">Preço</option>
+        <option value="baixo">Até 85 €</option>
+        <option value="medio">85 € – 95 €</option>
+        <option value="alto">Mais de 95 €</option>
+      </select>
+      <select id="f-disponibilidade" aria-label="Filtrar por disponibilidade">
+        <option value="">Disponibilidade</option>
+        <option value="disponivel">Disponível</option>
+        <option value="ultimas-unidades">Últimas unidades</option>
+        <option value="esgotado">Esgotado</option>
+      </select>
+      <span class="filter-count" id="filter-count">35 camisolas</span>
+    </div>
+
+    <div class="product-grid" id="catalog-grid"></div>
+  </div>
+</section>
+
+<div class="tear"></div>
 
 <!-- ============ PROVA SOCIAL ============ -->
 <section class="home-reviews" id="avaliacoes">
@@ -296,53 +357,6 @@ src="https://www.facebook.com/tr?id=1074220551792024&ev=PageView&noscript=1"></n
     <span class="item">São Paulo</span><span class="item">Palmeiras</span><span class="item">Santos</span><span class="item">Cruzeiro</span>
   </div>
 </div>
-
-<div class="tear"></div>
-
-<!-- ============ CATÁLOGO ============ -->
-<section class="section-dark aurora-bg" id="catalogo">
-  <div class="container">
-    <div class="section-head reveal">
-      <h2 class="heading-br-gradient">Catálogo<br>Brasileiro</h2>
-      <p class="section-sub">Seleção Brasileira e seis clubes. Filtre pela sua equipa, tipo, temporada, tamanho, preço ou disponibilidade.</p>
-    </div>
-
-    <div class="filter-bar">
-      <select id="f-equipa" aria-label="Filtrar por equipa ou seleção">
-        <option value="">Equipa / Seleção</option>
-        <option value="selecao">Seleção Brasileira</option>
-        <option value="flamengo">Flamengo</option>
-        <option value="corinthians">Corinthians</option>
-        <option value="sao-paulo">São Paulo</option>
-        <option value="palmeiras">Palmeiras</option>
-        <option value="santos">Santos</option>
-        <option value="cruzeiro">Cruzeiro</option>
-      </select>
-      <select id="f-tamanho" aria-label="Filtrar por tamanho">
-        <option value="">Tamanho</option>
-        <option value="S">S</option>
-        <option value="M">M</option>
-        <option value="L">L</option>
-        <option value="XL">XL</option>
-      </select>
-      <select id="f-preco" aria-label="Filtrar por faixa de preço">
-        <option value="">Preço</option>
-        <option value="baixo">Até 85 €</option>
-        <option value="medio">85 € – 95 €</option>
-        <option value="alto">Mais de 95 €</option>
-      </select>
-      <select id="f-disponibilidade" aria-label="Filtrar por disponibilidade">
-        <option value="">Disponibilidade</option>
-        <option value="disponivel">Disponível</option>
-        <option value="ultimas-unidades">Últimas unidades</option>
-        <option value="esgotado">Esgotado</option>
-      </select>
-      <span class="filter-count" id="filter-count">35 camisolas</span>
-    </div>
-
-    <div class="product-grid" id="catalog-grid"></div>
-  </div>
-</section>
 
 <div class="tear"></div>
 
@@ -1174,8 +1188,8 @@ src="https://www.facebook.com/tr?id=1074220551792024&ev=PageView&noscript=1"></n
 <div id="flash-popup-root"></div>
 <div id="promo-popup-root"></div>
 
-<script src="js/data.js?v=70"></script>
-<script src="js/main.js?v=51"></script>
+<script src="js/data.js?v=71"></script>
+<script src="js/main.js?v=52"></script>
 <script src="js/flash-offer.js?v=5"></script>
 <script src="js/promo.js?v=2"></script>
 </body>
