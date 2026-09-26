@@ -498,6 +498,7 @@ function calculatePromotion(units, now = Date.now()) {
         meta: {
           fbp: getCookie('_fbp'),
           fbc: getCookie('_fbc'),
+          external_id: getCookie('lw_xid'),
         },
       }),
     });
