@@ -6,7 +6,9 @@
 
   function metaTrack(eventName, params = {}) {
     if (typeof window.fbq !== 'function') return;
-    window.fbq('track', eventName, params);
+    const eventID = eventName + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+    window.fbq('track', eventName, params, { eventID });
+    return eventID;
   }
 
   const CUSTOMER_REVIEWS = [
