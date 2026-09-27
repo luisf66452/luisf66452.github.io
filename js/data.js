@@ -315,6 +315,30 @@
     ],
   };
 
+  /* ============================================================
+     "2 POR 79 €" — preço fechado para 2 camisolas (PAIR_CONFIG)
+     Espelho de PAIR_CONFIG em api/_catalog.js do backend: editar SEMPRE
+     os dois juntos. Nunca soma com as outras promoções: o servidor aplica
+     só a que der mais desconto. maximumApplicationsPerOrder: 1 = só um par
+     por encomenda, para não baixar o preço de carrinhos de 4-5 camisolas
+     abaixo do "Leva 3, paga 2". Para desligar: enabled: false.
+     ============================================================ */
+  const PAIR_CONFIG = {
+    enabled: true,
+    eligibleProducts: [],
+    excludedTypes: ['casaco'],
+    quantity: 2,
+    priceCents: 7900,
+    maximumApplicationsPerOrder: 1,
+  };
+
+  function isPairEligible(productId) {
+    const p = getProduct(productId);
+    if (!p || (PAIR_CONFIG.excludedTypes || []).includes(p.type || '')) return false;
+    const list = PAIR_CONFIG.eligibleProducts;
+    return !list || !list.length || list.includes(productId);
+  }
+
   function isTierEligible(productId) {
     const list = TIER_CONFIG.eligibleProducts;
     if (!list || !list.length) return true;
@@ -430,14 +454,14 @@
 
 // Mantido em espelho no frontend/backend; os testes verificam a paridade.
 function calculatePromotion(units, now = Date.now()) {
-  const empty = () => ({ freeIndexes: new Set(), value: 0, label: '' });
+  const empty = () => ({ freeIndexes: new Set(), unitAmounts: new Map(), value: 0, label: '' });
   const eligible = (config) => units.map((u, idx) => ({
     idx, price: Math.round(u.unitPrice * 100), productId: u.product.id,
   })).filter(u => !config.eligibleProducts?.length || config.eligibleProducts.includes(u.productId))
     .sort((a, b) => a.price - b.price);
   const candidate = (items, count, label) => {
     const free = items.slice(0, count);
-    return { freeIndexes: new Set(free.map(u => u.idx)),
+    return { freeIndexes: new Set(free.map(u => u.idx)), unitAmounts: new Map(),
       value: free.reduce((sum, u) => sum + u.price, 0), label: free.length ? label : '' };
   };
   let seasonal = empty();
@@ -453,7 +477,44 @@ function calculatePromotion(units, now = Date.now()) {
   const quantity = tier ? candidate(items, tier.threshold - tier.pay,
     'Leva ' + tier.threshold + ', paga ' + tier.pay) : empty();
   // Compara valores monetários, nunca soma as ofertas. Em empate, mostra o escalão.
-  return quantity.value >= seasonal.value ? quantity : seasonal;
+  const best = quantity.value >= seasonal.value ? quantity : seasonal;
+  // "2 por 79 €" só ganha se der MAIS desconto do que as outras (nunca soma).
+  const pair = calculatePairOffer(units);
+  return pair.value > best.value ? pair : best;
+}
+
+// "2 por 79 €" (PAIR_CONFIG) — preço fechado para um grupo de camisolas.
+// Em vez de pôr unidades a zero, reparte o desconto pelas camisolas do
+// grupo (unitAmounts: índice -> cêntimos a cobrar). Usa o preço base do
+// produto (personalização e emblema continuam a ser cobrados à parte) e
+// agrupa as camisolas mais caras primeiro (melhor para o cliente).
+function calculatePairOffer(units) {
+  const none = { freeIndexes: new Set(), unitAmounts: new Map(), value: 0, label: '' };
+  const cfg = typeof PAIR_CONFIG === 'undefined' ? null : PAIR_CONFIG;
+  if (!cfg || !cfg.enabled) return none;
+  const items = units.map((u, idx) => ({ idx, base: Math.round(u.product.price * 100),
+    unit: Math.round(u.unitPrice * 100), productId: u.product.id, type: u.product.type || '' }))
+    .filter(u => !(cfg.excludedTypes || []).includes(u.type))
+    .filter(u => !cfg.eligibleProducts?.length || cfg.eligibleProducts.includes(u.productId))
+    .sort((a, b) => b.base - a.base || a.idx - b.idx);
+  const applications = Math.min(Math.floor(items.length / cfg.quantity), cfg.maximumApplicationsPerOrder);
+  const unitAmounts = new Map();
+  let value = 0;
+  for (let a = 0; a < applications; a++) {
+    const group = items.slice(a * cfg.quantity, (a + 1) * cfg.quantity);
+    const baseSum = group.reduce((sum, u) => sum + u.base, 0);
+    const discount = baseSum - cfg.priceCents;
+    if (discount <= 0) break;
+    let left = discount;
+    group.forEach((u, i) => {
+      const d = i === group.length - 1 ? left : Math.round(discount * u.base / baseSum);
+      left -= d;
+      unitAmounts.set(u.idx, u.unit - d);
+    });
+    value += discount;
+  }
+  return value > 0 ? { freeIndexes: new Set(), unitAmounts, value,
+    label: cfg.quantity + ' por ' + String(cfg.priceCents / 100).replace('.', ',') + ' €' } : none;
 }
 
   function cartTotals(cart, now = Date.now()) {
@@ -471,7 +532,7 @@ function calculatePromotion(units, now = Date.now()) {
     const promotion = calculatePromotion(units, now);
     return { subtotal: subtotalCents / 100, discount: promotion.value / 100,
       total: (subtotalCents - promotion.value) / 100, freeUnits: promotion.freeIndexes.size,
-      promotion: promotion.label };
+      promotion: promotion.label, pairUnits: promotion.unitAmounts.size };
   }
 
   // Envia o carrinho para a função de checkout e devolve o URL da Stripe
@@ -542,6 +603,7 @@ function calculatePromotion(units, now = Date.now()) {
     weeklyFeaturedProduct,
     PROMO_CONFIG, isPromoActive, isPromoEligible,
     TIER_CONFIG, isTierEligible, bestTierFor, tierDiscountPercent,
+    PAIR_CONFIG, isPairEligible,
     Cart,
   };
 })();

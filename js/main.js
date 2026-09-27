@@ -277,7 +277,7 @@
       el.style.display = 'block';
       el.innerHTML = `<div class="promo-progress-active">
         <strong>🎉 ${totals.promotion}</strong>
-        <p>${totals.freeUnits} camisola(s) de oferta: as elegíveis de menor valor.</p>
+        <p>${totals.freeUnits ? `${totals.freeUnits} camisola(s) de oferta: as elegíveis de menor valor.` : `${totals.pairUnits} camisolas pelo preço fechado de ${totals.promotion.replace(/^\d+ por /, '')}.`}</p>
         <p class="promo-progress-savings">Poupança estimada: ${euro(totals.discount)} <span class="promo-progress-note">(confirmada no checkout)</span></p>
         <p>Aplicamos apenas o maior desconto. As promoções não acumulam.</p>
       </div>`;
@@ -291,6 +291,11 @@
         if (tier.threshold > count) nextOffers.push({ remaining: tier.threshold - count,
           label: 'Leva ' + tier.threshold + ', paga ' + tier.pay });
       }
+    }
+    if (LWD.PAIR_CONFIG && LWD.PAIR_CONFIG.enabled) {
+      const remaining = LWD.PAIR_CONFIG.quantity - countFor(LWD.isPairEligible);
+      if (remaining > 0) nextOffers.push({ remaining,
+        label: LWD.PAIR_CONFIG.quantity + ' por ' + String(LWD.PAIR_CONFIG.priceCents / 100).replace('.', ',') + ' €' });
     }
     if (LWD.isPromoActive()) {
       const config = LWD.PROMO_CONFIG;
