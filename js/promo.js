@@ -100,8 +100,8 @@
           <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
         <p class="promo-popup-kicker">ÚLTIMA CHAMADA.</p>
-        <p class="promo-popup-headline">ESCOLHA 6 CAMISAS E PAGUE APENAS 3</p>
-        <p class="promo-popup-text">Adicione seis camisas participantes ao carrinho e as três de menor valor ficam grátis automaticamente.</p>
+        <p class="promo-popup-headline">ESCOLHA 6 CAMISOLAS E PAGUE APENAS 3</p>
+        <p class="promo-popup-text">Adicione seis camisolas participantes ao carrinho e as três de menor valor ficam grátis automaticamente.</p>
         <a href="index.html#catalogo" class="btn btn-primary promo-popup-cta">COMEÇAR A ESCOLHER</a>
         <button type="button" class="promo-popup-later">Agora não</button>
       </div>`;

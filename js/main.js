@@ -12,15 +12,15 @@
   }
 
   const CUSTOMER_REVIEWS = [
-    ['Uma experiência para repetir', 'Desde a escolha das peças até receber a encomenda, correu tudo bem. Fiquei contente com a compra e vou continuar a acompanhar a Low Wear.'],
-    ['Tudo certo com a encomenda', 'Recebi os artigos que escolhi, bem apresentados e sem problemas. Foi a minha primeira compra na Low Wear e fiquei satisfeito.'],
-    ['Gostei muito do corte!', 'Tinha algum receio de comprar roupa online, mas o tamanho ficou como queria. A peça funciona bem com vários looks.'],
-    ['Uma boa escolha para oferecer', 'Comprei uma peça para oferecer e acertei em cheio. A pessoa adorou o estilo e ficou logo a perguntar pela loja.'],
-    ['Simples e com estilo', 'Era exatamente o tipo de roupa que procurava: descontraída, confortável e fácil de usar. Gostei especialmente de como assenta.'],
-    ['Estilo e conforto no dia a dia', 'Já usei várias vezes e sinto-me sempre confortável. São daquelas peças que acabam por sair do armário todas as semanas.'],
-    ['Já quero encomendar outra vez!', 'As peças são confortáveis e fáceis de combinar. Comprei para experimentar e fiquei com vontade de escolher mais.'],
-    ['Atendimento impecável', 'Precisava de ajuda com o tamanho e a equipa foi muito atenciosa. A sugestão que me deram assentou mesmo bem.'],
-    ['Superou as expectativas!', 'Gostei das peças nas fotografias, mas ao vivo gostei ainda mais. Bons detalhes e um corte que resulta muito bem.'],
+    ['Uma experiência para repetir', 'Desde a escolha das peças até receber a encomenda, correu tudo bem. Fiquei contente com a compra e vou continuar a acompanhar a Low Wear.', 'Pedro Sobral'],
+    ['Tudo certo com a encomenda', 'Recebi os artigos que escolhi, bem apresentados e sem problemas. Foi a minha primeira compra na Low Wear e fiquei satisfeito.', 'André Augusto'],
+    ['Gostei muito do corte!', 'Tinha algum receio de comprar roupa online, mas o tamanho ficou como queria. A peça funciona bem com vários looks.', 'Carlos Almeida'],
+    ['Uma boa escolha para oferecer', 'Comprei uma peça para oferecer e acertei em cheio. A pessoa adorou o estilo e ficou logo a perguntar pela loja.', 'Luiza Silva'],
+    ['Simples e com estilo', 'Era exatamente o tipo de roupa que procurava: descontraída, confortável e fácil de usar. Gostei especialmente de como assenta.', 'Maria Antonia'],
+    ['Estilo e conforto no dia a dia', 'Já usei várias vezes e sinto-me sempre confortável. São daquelas peças que acabam por sair do armário todas as semanas.', 'Luiz Carlos'],
+    ['Já quero encomendar outra vez!', 'As peças são confortáveis e fáceis de combinar. Comprei para experimentar e fiquei com vontade de escolher mais.', 'Isabelly Miranda'],
+    ['Atendimento impecável', 'Precisava de ajuda com o tamanho e a equipa foi muito atenciosa. A sugestão que me deram assentou mesmo bem.', 'João Silva'],
+    ['Superou as expectativas!', 'Gostei das peças nas fotografias, mas ao vivo gostei ainda mais. Bons detalhes e um corte que resulta muito bem.', 'Marco Antonio'],
   ];
 
   /* ---------------- carrinho + checkout (Stripe) ----------------
@@ -338,7 +338,7 @@
         <div class="cl-media${p.photos && p.photos.length ? ' has-photo' : ''}">${LWD.productMedia(p)}</div>
         <div class="cl-info">
           <div class="cl-name">${LWD.fullName(p)}</div>
-          <div class="cl-meta">${LWD.TYPE_LABEL[p.type]} · ${p.season} · ${euro(p.price)}</div>
+          <div class="cl-meta">${[LWD.TYPE_LABEL[p.type], p.season, euro(p.price)].filter(Boolean).join(' · ')}</div>
           <div class="cl-row">
             <a class="btn btn-ghost btn-sm" href="produto.html?id=${p.id}">Ver produto</a>
           </div>
@@ -383,7 +383,7 @@
         </button>
         <a class="product-media${p.photos && p.photos.length ? ' has-photo' : ''}" href="produto.html?id=${p.id}">${LWD.productMedia(p)}</a>
         <div class="product-info">
-          <div class="p-eyebrow"><span>${team.name}</span><span>${p.season}</span></div>
+          <div class="p-eyebrow"><span>${team.name}</span>${p.season ? `<span>${p.season}</span>` : ''}</div>
           <h3><a href="produto.html?id=${p.id}">${p.name}</a></h3>
           <div class="p-price">
             <span class="now">${euro(p.price)}</span>
@@ -432,7 +432,7 @@
         <div class="team-card-body">
           <span class="team-count">${count} modelos disponíveis</span>
           <h3>${t.name}</h3>
-          <span class="btn btn-primary btn-sm">Ver camisas</span>
+          <span class="btn btn-primary btn-sm">Ver camisolas</span>
         </div>
       </a>`;
   }
@@ -464,9 +464,9 @@
       if (vals.temporada && p.season !== vals.temporada) return false;
       if (vals.tamanho && !p.sizes.includes(vals.tamanho)) return false;
       if (vals.disponibilidade && p.availability !== vals.disponibilidade) return false;
-      if (vals.preco === 'baixo' && p.price > 85) return false;
-      if (vals.preco === 'medio' && (p.price <= 85 || p.price > 95)) return false;
-      if (vals.preco === 'alto' && p.price <= 95) return false;
+      if (vals.preco === 'baixo' && p.price > 45) return false;
+      if (vals.preco === 'medio' && (p.price <= 45 || p.price > 50)) return false;
+      if (vals.preco === 'alto' && p.price <= 50) return false;
       return true;
     });
     grid.innerHTML = results.length
@@ -480,9 +480,9 @@
 
   $$('.filter-bar select').forEach(s => s.addEventListener('change', renderCatalog));
 
-  /* ---------------- camisa mais procurada (rotação semanal) ----------------
+  /* ---------------- camisola mais procurada (rotação semanal) ----------------
      Um único produto, escolhido automaticamente por LWD.weeklyFeaturedProduct()
-     — mesma camisa para todos os visitantes durante a semana toda, muda
+     — mesma camisola para todos os visitantes durante a semana toda, muda
      sozinha na semana seguinte. Reaproveita productCardHTML para manter
      favoritos/tamanhos/link "Ver produto" idênticos ao resto do site. */
   function renderWeeklySpotlight(container) {
@@ -660,7 +660,7 @@
     $('#breadcrumb-team').href = `equipa.html?slug=${team.slug}`;
     $('#breadcrumb-product').textContent = p.name;
     $('#pdp-name').textContent = LWD.fullName(p);
-    $('#pdp-sub').textContent = `${LWD.TYPE_LABEL[p.type]} · Temporada ${p.season}`;
+    $('#pdp-sub').textContent = p.season ? `${LWD.TYPE_LABEL[p.type]} · Temporada ${p.season}` : LWD.TYPE_LABEL[p.type];
     $('#pdp-price').innerHTML = p.was
       ? `<span>${euro(p.price)}</span><span class="was">${euro(p.was)}</span>`
       : `<span>${euro(p.price)}</span>`;
@@ -864,7 +864,7 @@
         const item = i === 0 ? p : LWD.PRODUCTS[(LWD.PRODUCTS.indexOf(p) + i) % LWD.PRODUCTS.length];
         return `<div class="bundle-slot" data-slot="${i}">
           <span>${String(i + 1).padStart(2, '0')}</span>
-          <label>Camisa<select class="bundle-product">${productOptions(item.id)}</select></label>
+          <label>Camisola<select class="bundle-product">${productOptions(item.id)}</select></label>
           <label>Tamanho<select class="bundle-size">${sizeOptions(item, item.sizes[0])}</select></label>
         </div>`;
       }).join('');
@@ -895,9 +895,9 @@
     const reviews = CUSTOMER_REVIEWS;
     const reviewsGrid = $('#pdp-reviews-grid');
     if (reviewsGrid) {
-      reviewsGrid.innerHTML = reviews.map(([title, body], i) => `<article class="review-card" aria-label="Avaliação ${i + 1} de ${reviews.length}">
+      reviewsGrid.innerHTML = reviews.map(([title, body, author], i) => `<article class="review-card" aria-label="Avaliação ${i + 1} de ${reviews.length}">
         <div class="review-stars" aria-label="5 estrelas">★★★★★</div><h4>${title}</h4><p>${body}</p>
-        <div class="review-brand">CLIENTE LOW WEAR</div></article>`).join('');
+        <div class="review-brand">${author || 'CLIENTE LOW WEAR'}</div></article>`).join('');
       const ratingLink = $('#pdp-rating-link');
       if (ratingLink) ratingLink.style.display = 'inline-flex';
       if ($('#pdp-rating-count')) $('#pdp-rating-count').textContent = `${reviews.length} avaliações`;
@@ -1022,9 +1022,9 @@
     const progress = $('#home-reviews-progress');
     if (!track || !viewport || !progress) return;
 
-    track.innerHTML = CUSTOMER_REVIEWS.map(([title, body], i) => `<article class="review-card" aria-label="Avaliação ${i + 1} de ${CUSTOMER_REVIEWS.length}">
+    track.innerHTML = CUSTOMER_REVIEWS.map(([title, body, author], i) => `<article class="review-card" aria-label="Avaliação ${i + 1} de ${CUSTOMER_REVIEWS.length}">
       <div class="review-stars" aria-label="5 estrelas">★★★★★</div><h4>${title}</h4><p>${body}</p>
-      <div class="review-brand">CLIENTE LOW WEAR</div></article>`).join('');
+      <div class="review-brand">${author || 'CLIENTE LOW WEAR'}</div></article>`).join('');
 
     const updateProgress = () => {
       const max = Math.max(1, viewport.scrollWidth - viewport.clientWidth);
