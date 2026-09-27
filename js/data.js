@@ -99,6 +99,8 @@
 
   const PRODUCTS = [
     // Seleção Brasileira
+    P('sel-branca-brasil', 'selecao', 'especial', 'Branca do Brasil', 'Especial', 49.9, ['S','M','L'], 'Novo', 'disponivel', '#ffffff', '#28bbb8',
+      { photos: ['img/products/sel-branca-brasil/01-frente.png', 'img/products/sel-branca-brasil/02-tres-quartos.png', 'img/products/sel-branca-brasil/03-detalhe.png', 'img/products/sel-branca-brasil/04-no-corpo.png'] }),
     P('sel-principal-24', 'selecao', 'principal', 'Amarelinha da Copa', '2024', 53.9, ['S','M','L'], 'Novo', 'disponivel', '#f6d21e', '#0b3d2e',
       { photos: ['img/products/sel-principal-24/01-frente-ia.jpg', 'img/products/sel-principal-24/02-tres-quartos-ia.jpg', 'img/products/sel-principal-24/03-detalhe-ia.jpg', 'img/products/sel-principal-24/04-no-corpo-ia.jpg'],
         spin: ['img/spin-webp/selecao-principal/01.webp', 'img/spin-webp/selecao-principal/02.webp', 'img/spin-webp/selecao-principal/03.webp', 'img/spin-webp/selecao-principal/04.webp', 'img/spin-webp/selecao-principal/05.webp', 'img/spin-webp/selecao-principal/06.webp', 'img/spin-webp/selecao-principal/07.webp', 'img/spin-webp/selecao-principal/08.webp', 'img/spin-webp/selecao-principal/09.webp', 'img/spin-webp/selecao-principal/10.webp'] }),
