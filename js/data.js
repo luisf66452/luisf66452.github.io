@@ -82,10 +82,13 @@
     especial: 'Edição Especial',
   };
 
+  // Preço anterior (mostrado riscado). Redução de ~10% em 27/09/2026.
+  // Para deixar de mostrar o preço riscado, esvaziar este objeto.
+  const LW_WAS = {"sel-principal-24":59.9,"sel-alt-24":54.9,"sel-especial-24":59.9,"fla-principal-24":59.9,"fla-alt-24":54.9,"fla-extra-24":59.9,"cor-principal-24":59.9,"cor-extra-24":54.9,"sao-principal-24":69.9,"sao-retro":59.9,"pal-principal-24":59.9,"pal-retro":59.9,"santos-principal-24":59.9,"santos-extra-24":49.9,"cru-principal-24":49.9,"cru-alt-24":54.9,"por-alt-24":49.9,"por-principal-24":52.9,"ben-principal-24":49.9,"ben-extra-24":50.9,"spo-principal-24":53.9,"spo-alt-24":53.9,"fcp-principal-24":52.9,"fcp-extra-24":49.9};
   const P = (id, teamSlug, type, name, season, price, sizes, tag, availability, main, trim, opts) => {
     opts = opts || {};
     return {
-      id, teamSlug, type, name, season, price, was: opts.was || null,
+      id, teamSlug, type, name, season, price, was: opts.was || LW_WAS[id] || null,
       sizes, tag: tag || null, availability: availability || 'disponivel', main, trim,
       photos: opts.photos || null,
       // Vista 360°: para ativar, preencher com os caminhos das fotos rodadas, por ordem.
@@ -96,89 +99,89 @@
 
   const PRODUCTS = [
     // Seleção Brasileira
-    P('sel-principal-24', 'selecao', 'principal', 'Amarelinha da Copa', '2024', 59.9, ['S','M','L'], 'Novo', 'disponivel', '#f6d21e', '#0b3d2e',
+    P('sel-principal-24', 'selecao', 'principal', 'Amarelinha da Copa', '2024', 53.9, ['S','M','L'], 'Novo', 'disponivel', '#f6d21e', '#0b3d2e',
       { photos: ['img/products/sel-principal-24/01-frente-ia.jpg', 'img/products/sel-principal-24/02-tres-quartos-ia.jpg', 'img/products/sel-principal-24/03-detalhe-ia.jpg', 'img/products/sel-principal-24/04-no-corpo-ia.jpg'],
         spin: ['img/spin-webp/selecao-principal/01.webp', 'img/spin-webp/selecao-principal/02.webp', 'img/spin-webp/selecao-principal/03.webp', 'img/spin-webp/selecao-principal/04.webp', 'img/spin-webp/selecao-principal/05.webp', 'img/spin-webp/selecao-principal/06.webp', 'img/spin-webp/selecao-principal/07.webp', 'img/spin-webp/selecao-principal/08.webp', 'img/spin-webp/selecao-principal/09.webp', 'img/spin-webp/selecao-principal/10.webp'] }),
-    P('sel-alt-24', 'selecao', 'alternativa', 'Azul da Copa', '2024', 54.9, ['S','M','L'], 'Mais vendido', 'disponivel', '#0b3da0', '#f6d21e',
+    P('sel-alt-24', 'selecao', 'alternativa', 'Azul da Copa', '2024', 48.9, ['S','M','L'], 'Mais vendido', 'disponivel', '#0b3da0', '#f6d21e',
       { photos: ['img/products/sel-alt-24/01-frente.jpg', 'img/products/sel-alt-24/02-tres-quartos.jpg', 'img/products/sel-alt-24/03-detalhe.jpg', 'img/products/sel-alt-24/04-no-corpo.jpg'],
         spin: Array.from({length: 21}, (_, i) => `img/spin-webp/selecao-alt/${String(i + 1).padStart(2, '0')}.webp`) }),
-    P('sel-especial-24', 'selecao', 'especial', 'Amarelinha Classica', '2024', 59.9, ['S','M','L'], 'Edição especial', 'disponivel', '#f6d21e', '#0b3d2e',
+    P('sel-especial-24', 'selecao', 'especial', 'Amarelinha Classica', '2024', 53.9, ['S','M','L'], 'Edição especial', 'disponivel', '#f6d21e', '#0b3d2e',
       { photos: ['img/products/sel-especial-24/01-frente.jpg', 'img/products/sel-especial-24/02-tres-quartos.jpg?v=2', 'img/products/sel-especial-24/03-detalhe.jpg', 'img/products/sel-especial-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/selecao-especial/${String(i + 1).padStart(2, '0')}.webp`) }),
 
     // Flamengo
-    P('fla-principal-24', 'flamengo', 'principal', 'Manto Rubro-Negro', '2024', 59.9, ['S','M','L'], 'Novo', 'disponivel', '#a2110a', '#121212',
+    P('fla-principal-24', 'flamengo', 'principal', 'Manto Rubro-Negro', '2024', 53.9, ['S','M','L'], 'Novo', 'disponivel', '#a2110a', '#121212',
       { photos: ['img/products/fla-principal-24/01-frente.jpg', 'img/products/fla-principal-24/02-tres-quartos.jpg', 'img/products/fla-principal-24/03-detalhe.jpg', 'img/products/fla-principal-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/flamengo-principal/${String(i + 1).padStart(2, '0')}.webp`) }),
-    P('fla-alt-24', 'flamengo', 'alternativa', 'Manto Rubro-Negro Branco', '2024', 54.9, ['S','M','L'], 'Mais vendido', 'disponivel', '#f4f3ec', '#a2110a',
+    P('fla-alt-24', 'flamengo', 'alternativa', 'Manto Rubro-Negro Branco', '2024', 48.9, ['S','M','L'], 'Mais vendido', 'disponivel', '#f4f3ec', '#a2110a',
       { photos: ['img/products/fla-alt-24/01-frente.jpg', 'img/products/fla-alt-24/02-tres-quartos.jpg', 'img/products/fla-alt-24/03-detalhe.jpg', 'img/products/fla-alt-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/flamengo-alt/${String(i + 1).padStart(2, '0')}.webp`) }),
-    P('fla-extra-24', 'flamengo', 'extra', 'Manto Rubro-Negro diferenciado', '2024', 59.9, ['S','M','L'], null, 'disponivel', '#f4f3ec', '#a2110a',
+    P('fla-extra-24', 'flamengo', 'extra', 'Manto Rubro-Negro diferenciado', '2024', 53.9, ['S','M','L'], null, 'disponivel', '#f4f3ec', '#a2110a',
       { photos: ['img/products/fla-extra-24/01-frente.jpg', 'img/products/fla-extra-24/02-tres-quartos.jpg', 'img/products/fla-extra-24/03-detalhe.jpg', 'img/products/fla-extra-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/flamengo-extra/${String(i + 1).padStart(2, '0')}.webp`) }),
 
     // Corinthians
-    P('cor-principal-24', 'corinthians', 'principal', 'Fiel Alvinegra', '2024', 59.9, ['S','M','L'], 'Novo', 'disponivel', '#f4f3ec', '#121212',
+    P('cor-principal-24', 'corinthians', 'principal', 'Fiel Alvinegra', '2024', 53.9, ['S','M','L'], 'Novo', 'disponivel', '#f4f3ec', '#121212',
       { photos: ['img/products/cor-principal-24/01-frente.jpg', 'img/products/cor-principal-24/02-tres-quartos.jpg', 'img/products/cor-principal-24/03-detalhe.jpg', 'img/products/cor-principal-24/04-no-corpo.jpg?v=2'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/corinthians-principal/${String(i + 1).padStart(2, '0')}.webp`) }),
-    P('cor-extra-24', 'corinthians', 'extra', 'Fiel Alvinegra diferenciada', '2024', 54.9, ['S','M','L'], 'Edição especial', 'disponivel', '#f4f3ec', '#121212',
+    P('cor-extra-24', 'corinthians', 'extra', 'Fiel Alvinegra diferenciada', '2024', 48.9, ['S','M','L'], 'Edição especial', 'disponivel', '#f4f3ec', '#121212',
       { photos: ['img/products/cor-extra-24/01-frente.jpg', 'img/products/cor-extra-24/02-tres-quartos.jpg', 'img/products/cor-extra-24/03-detalhe.jpg', 'img/products/cor-extra-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/corinthians-extra/${String(i + 1).padStart(2, '0')}.webp`) }),
 
     // São Paulo
-    P('sao-principal-24', 'sao-paulo', 'principal', 'Soberana Tricolor New Balance', '2024', 69.9, ['S','M','L'], 'Novo', 'disponivel', '#f4f3ec', '#a2110a',
+    P('sao-principal-24', 'sao-paulo', 'principal', 'Soberana Tricolor New Balance', '2024', 62.9, ['S','M','L'], 'Novo', 'disponivel', '#f4f3ec', '#a2110a',
       { photos: ['img/products/sao-principal-24/01-frente.jpg', 'img/products/sao-principal-24/02-tres-quartos.jpg', 'img/products/sao-principal-24/03-detalhe.jpg', 'img/products/sao-principal-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/sao-paulo-principal/${String(i + 1).padStart(2, '0')}.webp`) }),
-    P('sao-retro', 'sao-paulo', 'retro', 'Soberana Tricolor', '2019', 59.9, ['M','L'], 'Retro', 'disponivel', '#f4f3ec', '#a2110a',
+    P('sao-retro', 'sao-paulo', 'retro', 'Soberana Tricolor', '2019', 53.9, ['M','L'], 'Retro', 'disponivel', '#f4f3ec', '#a2110a',
       { photos: ['img/products/sao-retro/01-frente.jpg', 'img/products/sao-retro/02-tres-quartos.jpg', 'img/products/sao-retro/03-detalhe.jpg', 'img/products/sao-retro/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/sao-paulo-retro/${String(i + 1).padStart(2, '0')}.webp`) }),
 
     // Palmeiras
-    P('pal-principal-24', 'palmeiras', 'principal', 'Verdão Classico', '2024', 59.9, ['S','M','L'], 'Mais vendido', 'disponivel', '#0b6e2c', '#f4f3ec',
+    P('pal-principal-24', 'palmeiras', 'principal', 'Verdão Classico', '2024', 53.9, ['S','M','L'], 'Mais vendido', 'disponivel', '#0b6e2c', '#f4f3ec',
       { photos: ['img/products/pal-principal-24/01-frente.jpg', 'img/products/pal-principal-24/02-tres-quartos.jpg', 'img/products/pal-principal-24/03-detalhe.jpg', 'img/products/pal-principal-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/palmeiras-principal/${String(i + 1).padStart(2, '0')}.webp`) }),
-    P('pal-retro', 'palmeiras', 'retro', 'Verdão Retro', '2019', 59.9, ['M','L'], 'Retro', 'disponivel', '#0b6e2c', '#f4f3ec',
+    P('pal-retro', 'palmeiras', 'retro', 'Verdão Retro', '2019', 53.9, ['M','L'], 'Retro', 'disponivel', '#0b6e2c', '#f4f3ec',
       { photos: ['img/products/pal-retro/01-frente.jpg?v=2', 'img/products/pal-retro/02-tres-quartos.jpg?v=2', 'img/products/pal-retro/03-detalhe.jpg?v=2', 'img/products/pal-retro/04-no-corpo.jpg?v=2'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/palmeiras-retro-360/${String(i + 1).padStart(2, '0')}.webp`) }),
 
     // Santos
-    P('santos-principal-24', 'santos', 'principal', 'Peixe Classico', '2024', 59.9, ['S','M','L'], 'Novo', 'disponivel', '#f4f3ec', '#121212',
+    P('santos-principal-24', 'santos', 'principal', 'Peixe Classico', '2024', 53.9, ['S','M','L'], 'Novo', 'disponivel', '#f4f3ec', '#121212',
       { photos: ['img/products/santos-principal-24/01-frente.jpg', 'img/products/santos-principal-24/02-tres-quartos.jpg', 'img/products/santos-principal-24/03-detalhe.jpg', 'img/products/santos-principal-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/santos-principal/${String(i + 1).padStart(2, '0')}.webp`) }),
-    P('santos-extra-24', 'santos', 'extra', 'Peixe Diferenciado', '2024', 49.9, ['S','M','L'], null, 'disponivel', '#121212', '#f4f3ec',
+    P('santos-extra-24', 'santos', 'extra', 'Peixe Diferenciado', '2024', 44.9, ['S','M','L'], null, 'disponivel', '#121212', '#f4f3ec',
       { photos: ['img/products/santos-extra-24/01-frente.jpg?v=2', 'img/products/santos-extra-24/02-tres-quartos.jpg', 'img/products/santos-extra-24/03-detalhe.jpg', 'img/products/santos-extra-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/santos-extra/${String(i + 1).padStart(2, '0')}.webp`) }),
 
     // Cruzeiro
-    P('cru-principal-24', 'cruzeiro', 'principal', 'Manto Celeste Azul', '2024', 49.9, ['S','M','L'], 'Novo', 'disponivel', '#0b3da0', '#f4f3ec',
+    P('cru-principal-24', 'cruzeiro', 'principal', 'Manto Celeste Azul', '2024', 44.9, ['S','M','L'], 'Novo', 'disponivel', '#0b3da0', '#f4f3ec',
       { photos: ['img/products/cru-principal-24/01-frente.jpg', 'img/products/cru-principal-24/02-tres-quartos.jpg', 'img/products/cru-principal-24/03-detalhe.jpg', 'img/products/cru-principal-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/cruzeiro-principal/${String(i + 1).padStart(2, '0')}.webp`) }),
-    P('cru-alt-24', 'cruzeiro', 'alternativa', 'Manto Celeste Branco', '2024', 54.9, ['S','M','L'], 'Mais vendido', 'disponivel', '#f4f3ec', '#0b3da0',
+    P('cru-alt-24', 'cruzeiro', 'alternativa', 'Manto Celeste Branco', '2024', 48.9, ['S','M','L'], 'Mais vendido', 'disponivel', '#f4f3ec', '#0b3da0',
       { photos: ['img/products/cru-alt-24/01-frente.jpg', 'img/products/cru-alt-24/02-tres-quartos.jpg', 'img/products/cru-alt-24/03-detalhe.jpg', 'img/products/cru-alt-24/04-no-corpo.jpg'],
         spin: Array.from({length: 24}, (_, i) => `img/spin-webp/cruzeiro-alt/${String(i + 1).padStart(2, '0')}.webp`) }),
 
     // Seleção Portugal
-    P('por-alt-24', 'selecao-portugal', 'alternativa', 'Azul de Portugal', '2024', 49.9, ['S','M','L'], 'Novo', 'disponivel', '#7fd9c4', '#0b4a41',
+    P('por-alt-24', 'selecao-portugal', 'alternativa', 'Azul de Portugal', '2024', 44.9, ['S','M','L'], 'Novo', 'disponivel', '#7fd9c4', '#0b4a41',
       { photos: ['img/products/por-alt-24/01-frente.jpg', 'img/products/por-alt-24/02-tres-quartos.jpg', 'img/products/por-alt-24/03-detalhe.jpg', 'img/products/por-alt-24/04-no-corpo.jpg'] }),
-    P('por-principal-24', 'selecao-portugal', 'principal', 'Vermelha de Portugal', '2024', 52.9, ['S','M','L'], 'Novo', 'disponivel', '#a01414', '#f4f3ec',
+    P('por-principal-24', 'selecao-portugal', 'principal', 'Vermelha de Portugal', '2024', 46.9, ['S','M','L'], 'Novo', 'disponivel', '#a01414', '#f4f3ec',
       { photos: ['img/products/por-principal-24/01-frente.jpg', 'img/products/por-principal-24/02-tres-quartos.jpg', 'img/products/por-principal-24/03-detalhe.jpg', 'img/products/por-principal-24/04-no-corpo.jpg'] }),
 
     // Benfica
-    P('ben-principal-24', 'benfica', 'principal', 'Classica do Benfica', '2024', 49.9, ['S','M','L'], 'Novo', 'disponivel', '#d4001f', '#f4f3ec',
+    P('ben-principal-24', 'benfica', 'principal', 'Classica do Benfica', '2024', 44.9, ['S','M','L'], 'Novo', 'disponivel', '#d4001f', '#f4f3ec',
       { photos: ['img/products/ben-principal-24/01-frente.jpg', 'img/products/ben-principal-24/02-tres-quartos.jpg', 'img/products/ben-principal-24/03-detalhe.jpg', 'img/products/ben-principal-24/04-no-corpo.jpg?v=2'] }),
-    P('ben-extra-24', 'benfica', 'extra', 'Diferenciada do Benfica', '2024', 50.9, ['S','M','L'], null, 'disponivel', '#f4f3ec', '#d4001f',
+    P('ben-extra-24', 'benfica', 'extra', 'Diferenciada do Benfica', '2024', 44.9, ['S','M','L'], null, 'disponivel', '#f4f3ec', '#d4001f',
       { photos: ['img/products/ben-extra-24/01-frente.jpg', 'img/products/ben-extra-24/02-tres-quartos.jpg?v=2', 'img/products/ben-extra-24/03-detalhe.jpg', 'img/products/ben-extra-24/04-no-corpo.jpg'] }),
 
     // Sporting
-    P('spo-principal-24', 'sporting', 'principal', 'Classica do Sporting', '2024', 53.9, ['S','M','L'], 'Novo', 'disponivel', '#0d5c34', '#f4f3ec',
+    P('spo-principal-24', 'sporting', 'principal', 'Classica do Sporting', '2024', 47.9, ['S','M','L'], 'Novo', 'disponivel', '#0d5c34', '#f4f3ec',
       { photos: ['img/products/spo-principal-24/01-frente.jpg', 'img/products/spo-principal-24/02-tres-quartos.jpg', 'img/products/spo-principal-24/03-detalhe.jpg', 'img/products/spo-principal-24/04-no-corpo.jpg'] }),
-    P('spo-alt-24', 'sporting', 'alternativa', 'Branca do Sporting', '2024', 53.9, ['S','M','L'], null, 'disponivel', '#f4f3ec', '#0d5c34',
+    P('spo-alt-24', 'sporting', 'alternativa', 'Branca do Sporting', '2024', 47.9, ['S','M','L'], null, 'disponivel', '#f4f3ec', '#0d5c34',
       { photos: ['img/products/spo-alt-24/01-frente.jpg', 'img/products/spo-alt-24/02-tres-quartos.jpg', 'img/products/spo-alt-24/03-detalhe.jpg', 'img/products/spo-alt-24/04-no-corpo.jpg'] }),
 
     // FC Porto
-    P('fcp-principal-24', 'porto', 'principal', 'Classica do Porto', '2024', 52.9, ['S','M','L'], 'Novo', 'disponivel', '#0b3d91', '#f4f3ec',
+    P('fcp-principal-24', 'porto', 'principal', 'Classica do Porto', '2024', 46.9, ['S','M','L'], 'Novo', 'disponivel', '#0b3d91', '#f4f3ec',
       { photos: ['img/products/fcp-principal-24/01-frente.jpg', 'img/products/fcp-principal-24/02-tres-quartos.jpg', 'img/products/fcp-principal-24/03-detalhe.jpg', 'img/products/fcp-principal-24/04-no-corpo.jpg'] }),
-    P('fcp-extra-24', 'porto', 'extra', 'Diferenciada do Porto', '2024', 49.9, ['S','M','L'], null, 'disponivel', '#f4f3ec', '#0b3d91',
+    P('fcp-extra-24', 'porto', 'extra', 'Diferenciada do Porto', '2024', 44.9, ['S','M','L'], null, 'disponivel', '#f4f3ec', '#0b3d91',
       { photos: ['img/products/fcp-extra-24/01-frente.jpg', 'img/products/fcp-extra-24/02-tres-quartos.jpg', 'img/products/fcp-extra-24/03-detalhe.jpg', 'img/products/fcp-extra-24/04-no-corpo.jpg'] }),
   ];
 
