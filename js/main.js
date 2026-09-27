@@ -247,6 +247,23 @@
     msgEl.innerHTML = '';
   }
 
+  // Sem códigos ativos: esconder o campo para não levar o cliente a sair
+  // do carrinho à procura de um código. Voltar a mostrar quando houver
+  // códigos reais (ex.: influencers).
+  $$('#cart-coupon-form, #cart-coupon-msg').forEach(el => { el.style.display = 'none'; });
+
+  // Hero: preço efetivo por camisola na promoção "Leve 6, Pague 3".
+  (() => {
+    const heroPriceEl = $('#promo-hero-price');
+    if (!heroPriceEl || !LWD.isPromoActive()) return;
+    const prices = LWD.PRODUCTS
+      .filter(pr => pr.availability !== 'esgotado' && LWD.isPromoEligible(pr.id))
+      .map(pr => pr.price);
+    if (!prices.length) return;
+    const min = Math.min(...prices);
+    heroPriceEl.innerHTML = ` 6 camisolas desde <strong>${euro(min * 3)}</strong>: só <strong>${euro(min / 2)}</strong> por camisola.`;
+  })();
+
   $('#cart-coupon-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const msgEl = $('#cart-coupon-msg');
@@ -306,8 +323,7 @@
     nextOffers.sort((a, b) => a.remaining - b.remaining);
     const next = nextOffers[0];
     el.style.display = next ? 'block' : 'none';
-    el.innerHTML = next ? `<p class="promo-progress-text">Adicione mais ${next.remaining} camisola(s) elegíveis para ativar «${next.label}».</p>
-      <a href="index.html#catalogo" class="btn btn-ghost btn-sm promo-progress-cta">ESCOLHER MAIS UMA</a>` : '';
+    el.innerHTML = next ? `<p class="promo-progress-text">Dica: com mais ${next.remaining} camisola(s) ativa «${next.label}».</p>` : '';
   }
 
   function updateCounts() {
@@ -674,7 +690,7 @@
     if (promoBadgeEl) {
       promoBadgeEl.innerHTML = (p.availability !== 'esgotado' && LWD.isPromoActive() && LWD.isPromoEligible(p.id))
         ? `<div class="promo-card-badge promo-pdp-badge">LEVE 6 · PAGUE 3</div>
-           <p class="promo-pdp-note">Produto participante da promoção de inauguração. <a href="#" class="js-promo-how">Ver regras da promoção</a></p>`
+           <p class="promo-pdp-note">Com 6 destas camisolas, cada uma fica a <strong>${euro(p.price / 2)}</strong> (paga 3, leva 6). <a href="#" class="js-promo-how">Ver regras da promoção</a></p>`
         : '';
     }
 
