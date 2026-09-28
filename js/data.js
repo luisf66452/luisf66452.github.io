@@ -326,7 +326,7 @@
   const PAIR_CONFIG = {
     enabled: true,
     eligibleProducts: [],
-    excludedTypes: ['casaco'],
+    excludedTypes: ['casaco', 'conjunto'],
     quantity: 2,
     priceCents: 7900,
     maximumApplicationsPerOrder: 1,
@@ -420,7 +420,7 @@
     customName = (customName || '').trim();
     badge = badge === 'Mundial 2026' ? badge : '';
     version = version === 'Jogador' ? 'Jogador' : 'Adepto';
-    if (product.type === 'casaco') { customName = ''; badge = ''; version = ''; }
+    if (['casaco', 'conjunto'].includes(product.type)) { customName = ''; badge = ''; version = ''; }
     const cart = loadCart();
     // junta a uma linha existente do mesmo produto/tamanho/personalização
     const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === version && (l.badge || '') === badge);
