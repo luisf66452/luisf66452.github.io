@@ -1775,3 +1775,6 @@ body.no-scroll{ overflow:hidden; }
   }
 }
 
+
+/* Navegação por coleções */
+.collection-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 24px}.collection-tabs a{padding:12px 18px;border:1px solid var(--muted);border-radius:24px;text-decoration:none;font-size:14px}.collection-tabs a[aria-current="true"]{background:var(--promo-neon,#27ff5a);color:#0b0c0a;border-color:transparent}.filter-bar{flex-wrap:wrap}.pdp-block[hidden]{display:none!important}@media(max-width:600px){.collection-tabs{gap:8px}.collection-tabs a{padding:10px 13px;font-size:12px}}

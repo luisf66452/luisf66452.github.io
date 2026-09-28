@@ -396,6 +396,7 @@
     customName = (customName || '').trim();
     badge = badge === 'Mundial 2026' ? badge : '';
     version = version === 'Jogador' ? 'Jogador' : 'Adepto';
+    if (product.type === 'casaco') { customName = ''; badge = ''; version = ''; }
     const cart = loadCart();
     // junta a uma linha existente do mesmo produto/tamanho/personalização
     const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === version && (l.badge || '') === badge);

@@ -447,6 +447,7 @@
     const grid = $('#catalog-grid');
     if (!grid) return;
     const vals = {
+      colecao: $('#f-colecao')?.value || '',
       equipa: $('#f-equipa')?.value || '',
       tipo: $('#f-tipo')?.value || '',
       temporada: $('#f-temporada')?.value || '',
@@ -455,18 +456,16 @@
       disponibilidade: $('#f-disponibilidade')?.value || '',
     };
     const results = LWD.PRODUCTS.filter(p => {
-      // "Catálogo completo" agora é o catálogo brasileiro — o futebol
-      // português vive só na secção #futebol-portugues (ver country:'PT').
-      const team = LWD.getTeam(p.teamSlug);
-      if (team && team.country === 'PT') return false;
+      // Cada coleção pode ser combinada com equipa, tamanho e preço.
+      if (vals.colecao && LWD.collectionFor(p) !== vals.colecao) return false;
       if (vals.equipa && p.teamSlug !== vals.equipa) return false;
       if (vals.tipo && p.type !== vals.tipo) return false;
       if (vals.temporada && p.season !== vals.temporada) return false;
       if (vals.tamanho && !p.sizes.includes(vals.tamanho)) return false;
       if (vals.disponibilidade && p.availability !== vals.disponibilidade) return false;
-      if (vals.preco === 'baixo' && p.price > 85) return false;
-      if (vals.preco === 'medio' && (p.price <= 85 || p.price > 95)) return false;
-      if (vals.preco === 'alto' && p.price <= 95) return false;
+      if (vals.preco === 'baixo' && p.price > 50) return false;
+      if (vals.preco === 'medio' && (p.price <= 50 || p.price > 55)) return false;
+      if (vals.preco === 'alto' && p.price <= 55) return false;
       return true;
     });
     grid.innerHTML = results.length
@@ -475,10 +474,18 @@
     wireProductGrid(grid);
     observeReveals();
     const countEl = $('#filter-count');
-    if (countEl) countEl.textContent = `${results.length} camisola${results.length === 1 ? '' : 's'}`;
+    if (countEl) countEl.textContent = `${results.length} produto${results.length === 1 ? '' : 's'}`;
+    $$('[data-collection]').forEach(a => a.setAttribute('aria-current', String(a.dataset.collection === vals.colecao)));
   }
 
   $$('.filter-bar select').forEach(s => s.addEventListener('change', renderCatalog));
+  $$('[data-collection]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    $('#f-colecao').value = a.dataset.collection;
+    $('#f-equipa').value = '';
+    history.replaceState(null, '', a.getAttribute('href'));
+    renderCatalog();
+  }));
 
   /* ---------------- camisa mais procurada (rotação semanal) ----------------
      Um único produto, escolhido automaticamente por LWD.weeklyFeaturedProduct()
@@ -660,7 +667,7 @@
     $('#breadcrumb-team').href = `equipa.html?slug=${team.slug}`;
     $('#breadcrumb-product').textContent = p.name;
     $('#pdp-name').textContent = LWD.fullName(p);
-    $('#pdp-sub').textContent = `${LWD.TYPE_LABEL[p.type]} · Temporada ${p.season}`;
+    $('#pdp-sub').textContent = `${LWD.TYPE_LABEL[p.type]}${/^\d{4}$/.test(p.season) ? ' · Temporada ' + p.season : ''}`;
     $('#pdp-price').innerHTML = p.was
       ? `<span>${euro(p.price)}</span><span class="was">${euro(p.was)}</span>`
       : `<span>${euro(p.price)}</span>`;
@@ -712,6 +719,10 @@
     const zoomHint = $('#zoom-hint');
     const spinHint = $('#spin-hint');
     const separateSpin = gallery.length > 1 && p.spin && p.spin.length > 1;
+    if (hasPhoto && gallery.length > 1) {
+      mainOuter.classList.add('has-studio-gallery');
+      thumbsEl.classList.add('has-studio-gallery');
+    }
     thumbsEl.innerHTML = gallery.map((media, i) => `<button class="pdp-thumb${i === 0 ? ' is-active' : ''}${hasPhoto ? ' has-photo' : ''}" aria-label="Imagem ${i + 1}">${media}</button>`).join('');
     if (separateSpin) {
       mainOuter.classList.add('has-studio-gallery');
@@ -811,6 +822,14 @@
     }
 
     const versionWrap = $('#version-toggle');
+    const isCoat = p.type === 'casaco';
+    if (isCoat) {
+      if (versionWrap) versionWrap.hidden = true;
+      if ($('#personalize-block')) $('#personalize-block').hidden = true;
+      $('#tab-descricao').innerHTML = '<p>Casaco ' + LWD.getTeam(p.teamSlug).name + ' com fecho frontal e bolsos. Consulte as quatro imagens para ver a peça, os detalhes e o caimento.</p><ul><li>Disponível nos tamanhos S, M e L</li><li>Modelo apresentado nas fotografias</li></ul>';
+      $('#tab-material').innerHTML = '<p>Consulte a etiqueta da peça para a composição e os cuidados específicos do tecido.</p>';
+      $('#tab-lavagem').innerHTML = '<p>Siga as instruções da etiqueta. Evite calor direto sobre os emblemas e estampas.</p>';
+    }
     let selectedVersion = 'Adepto';
     if (versionWrap) {
       $$('.version-toggle button', versionWrap).forEach(btn => btn.addEventListener('click', () => {
