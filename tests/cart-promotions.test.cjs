@@ -4,12 +4,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.join(__dirname, '..');
-function frontend() {
+function frontend(pairOn = false) {
   let sent;
-  const context = { window: {}, localStorage: { getItem: () => null, setItem() {} },
+  const context = { window: {}, document: { cookie: '' }, localStorage: { getItem: () => null, setItem() {} },
     fetch: async (url, options) => { sent = JSON.parse(options.body); return { ok:true, json: async () => ({url:'https://checkout.stripe.com/test-stub'}) }; } };
   vm.runInNewContext(fs.readFileSync(path.join(root,'js/data.js'),'utf8'), context);
-  return { data:context.window.LowWearData, sent:() => sent };
+  const data = context.window.LowWearData;
+  for (const [id, price] of [['sel-principal-24', 59.9], ['sao-principal-24', 69.9], ['ben-principal-24', 49.9]]) data.getProduct(id).price = price;
+  if (!pairOn) data.PAIR_CONFIG.enabled = false;
+  return { data, sent:() => sent };
 }
 const now = Date.parse('2026-09-20T12:00:00Z');
 const cart = quantity => ({lines:[{productId:'sel-principal-24',size:'M',quantity,unitPrice:0.01}]});
@@ -23,7 +26,7 @@ for (const [qty,free] of [[2,0],[3,1],[5,1],[6,3],[8,3],[9,5],[11,5],[12,7],[14,
 test('checkout preserves all units without client pricing', async () => {
   const app = frontend();
   await app.data.Cart.checkout(cart(15));
-  assert.deepEqual(app.sent(), {lines:Array.from({length:15}, () => ({productId:'sel-principal-24',size:'M',quantity:1}))});
+  assert.deepEqual(app.sent().lines, Array.from({length:15}, () => ({productId:'sel-principal-24',size:'M',quantity:1})));
 });
 test('permanent tiers work after campaign expiry', () => {
   const totals = frontend().data.Cart.totals(cart(12), Date.parse('2027-01-01'));
@@ -56,4 +59,28 @@ test('cart UI shows the winning tier and discounted total', () => {
   vm.runInNewContext('renderCart();',context);
   assert.match(elements['#cart-promo-progress'].innerHTML,/Leva 3, paga 2/);
   assert.doesNotMatch(elements['#cart-promo-progress'].innerHTML,/Faltam 3/);
+});
+
+test('pair: carrinho mostra 2 por 79 € e total 79', () => {
+  const totals = frontend(true).data.Cart.totals({lines:[
+    {productId:'sel-principal-24',size:'M',quantity:1},{productId:'ben-principal-24',size:'M',quantity:1}]},now);
+  assert.equal(totals.total,79);
+  assert.equal(totals.promotion,'2 por 79 €');
+  assert.equal(totals.pairUnits,2);
+});
+test('pair: não mexe no Leva 3, paga 2', () => {
+  const totals = frontend(true).data.Cart.totals(cart(3),now);
+  assert.equal(totals.total,119.8);
+  assert.equal(totals.promotion,'Leva 3, paga 2');
+});
+test('pair: carrinho com 1 camisola sugere 2 por 79 €', () => {
+  const {data} = frontend(true);
+  const main = fs.readFileSync(path.join(root,'js/main.js'),'utf8');
+  const progress = main.slice(main.indexOf('  function renderPromoProgress('), main.indexOf('  function updateCounts()'));
+  const el = {style:{},innerHTML:''};
+  const t = data.Cart.totals; data.Cart.totals = c => t(c, now);
+  vm.runInNewContext(progress + '\nrenderPromoProgress(lines);', { LWD:data, euro:data.euro, $:()=>el, lines:cart(1).lines });
+  assert.match(el.innerHTML, /mais 1 camisola.*2 por 79/);
+  vm.runInNewContext(progress + '\nrenderPromoProgress(lines);', { LWD:data, euro:data.euro, $:()=>el, lines:cart(2).lines });
+  assert.match(el.innerHTML, /2 camisolas pelo preço fechado de 79 €/);
 });
