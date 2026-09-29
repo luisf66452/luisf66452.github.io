@@ -849,7 +849,7 @@
       if (versionWrap) versionWrap.hidden = true;
       if ($('#pdp-extras')) $('#pdp-extras').hidden = true;
       if ($('#personalize-block')) $('#personalize-block').hidden = true;
-      $('#tab-descricao').innerHTML = isSet ? '<p>Conjunto completo do Benfica: camisola de treino de manga comprida com meio fecho e calças a condizer.</p><ul><li>Inclui as duas peças apresentadas nas fotografias</li><li>Tamanhos S, M e L; o tamanho escolhido aplica-se ao conjunto</li></ul>' : '<p>Casaco ' + LWD.getTeam(p.teamSlug).name + ' com fecho frontal e bolsos. Consulte as quatro imagens para ver a peça, os detalhes e o caimento.</p><ul><li>Disponível nos tamanhos S, M e L</li><li>Modelo apresentado nas fotografias</li></ul>';
+      $('#tab-descricao').innerHTML = '<p>' + (p.description || (isSet ? 'Conjunto completo de treino.' : 'Casaco ' + LWD.getTeam(p.teamSlug).name + ' com fecho frontal e bolsos.')) + '</p><ul>' + (isSet ? '<li>Inclui as duas peças apresentadas nas fotografias</li><li>Tamanhos S, M e L; o tamanho escolhido aplica-se ao conjunto</li>' : '<li>Disponível nos tamanhos S, M e L</li><li>Modelo apresentado nas fotografias</li>') + '</ul>';
       $('#tab-material').innerHTML = '<p>Consulte a etiqueta da peça para a composição e os cuidados específicos do tecido.</p>';
       $('#tab-lavagem').innerHTML = '<p>Siga as instruções da etiqueta. Evite calor direto sobre os emblemas e estampas.</p>';
     }
