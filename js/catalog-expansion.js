@@ -12,9 +12,35 @@
  const href=k=>'index.html?colecao='+k+'#catalogo';
  const links=key=>D.TEAMS.filter(t=>key==='selecoes'?D.isNationalTeam(t):key==='brasil'?t.country==='BR'&&!D.isNationalTeam(t):t.country!=='BR'&&!D.isNationalTeam(t)).map(t=>'<a href="equipa.html?slug='+t.slug+'">'+t.name+'</a>').join('');
  const nav=document.querySelector('.main-nav');
- if(nav)nav.innerHTML='<a href="index.html">Início</a>'+groups.map(([k,n])=>['casacos','conjuntos'].includes(k)?'<a href="'+href(k)+'">'+n+'</a>':'<div class="nav-item-drop"><button class="nav-drop-trigger" aria-expanded="false">'+n+' <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="nav-dropdown"><a href="'+href(k)+'">Ver todos</a>'+links(k)+'</div></div>').join('')+'<a href="index.html#catalogo">Catálogo</a>';
+ const isCombo=/combo\.html/.test(location.pathname);
+ const comboLink='<a class="nav-combo'+(isCombo?' is-current':'')+'" href="combo.html?c=todos">🔥 2 por 79€</a>';
+ const navLabel=(k,n)=>k==='conjuntos'?n+' <span class="nav-new">Novo</span>':n;
+ if(nav)nav.innerHTML='<a href="index.html">Início</a>'+comboLink+groups.map(([k,n])=>['casacos','conjuntos'].includes(k)?'<a href="'+href(k)+'">'+navLabel(k,n)+'</a>':'<div class="nav-item-drop"><button class="nav-drop-trigger" aria-expanded="false">'+n+' <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="nav-dropdown"><a href="'+href(k)+'">Ver todos</a>'+links(k)+'</div></div>').join('')+'<a href="index.html#catalogo">Catálogo</a>';
  const mobile=document.querySelector('#mobile-nav nav');
- if(mobile)mobile.innerHTML='<a href="index.html">Início</a>'+groups.map(([k,n])=>'<a class="mobile-nav-label" href="'+href(k)+'">'+n+'</a>'+(['casacos','conjuntos'].includes(k)?'':'<div class="mobile-nav-sub">'+links(k)+'</div>')).join('');
+ if(mobile)mobile.innerHTML='<a href="index.html">Início</a><a class="mobile-nav-combo" href="combo.html?c=todos">🔥 Combos: 2 camisolas por 79€ <b>→</b></a>'+groups.map(([k,n])=>'<a class="mobile-nav-label" href="'+href(k)+'">'+navLabel(k,n)+'</a>'+(['casacos','conjuntos'].includes(k)?'':'<div class="mobile-nav-sub">'+links(k)+'</div>')).join('');
+
+ /* Destaque dos combos 2 por 79€ e do "Novo" em Conjuntos */
+ document.head.insertAdjacentHTML('beforeend','<style id="lw-nav-highlight">'
+  +'.main-nav>a,.main-nav .nav-drop-trigger{white-space:nowrap}'+'.main-nav a.nav-combo{background:#3CFF6B;color:#04170c;font-weight:700;padding:8px 14px;border-radius:999px;letter-spacing:.04em;white-space:nowrap;box-shadow:0 0 0 0 rgba(60,255,107,.55);animation:lwComboPulse 2.4s ease-out 3}'
+  +'.main-nav a.nav-combo::after{display:none}.main-nav a.nav-combo:hover{color:#04170c;filter:brightness(1.08)}.main-nav a.nav-combo.is-current{box-shadow:0 0 0 2px #04170c inset}'
+  +'@keyframes lwComboPulse{0%{box-shadow:0 0 0 0 rgba(60,255,107,.55)}70%{box-shadow:0 0 0 12px rgba(60,255,107,0)}100%{box-shadow:0 0 0 0 rgba(60,255,107,0)}}'
+  +'.nav-new{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;background:#d8b25e;color:#1a1405;font-size:9px;font-weight:700;letter-spacing:.08em;vertical-align:2px;text-transform:uppercase}'
+  +'.main-nav{gap:18px}@media (max-width:1440px){.main-nav{gap:14px}.main-nav>a,.main-nav .nav-drop-trigger{font-size:11px}.main-nav a.nav-combo{padding:7px 11px}}@media (max-width:1240px){.main-nav{display:none!important}.nav-toggle{display:flex!important}}'
+  +'.mobile-nav-combo{display:flex!important;justify-content:space-between;align-items:center;margin:10px 0 4px;padding:14px 16px!important;border-radius:10px;background:#3CFF6B;color:#04170c!important;font:700 17px/1.25 var(--font-body)!important;letter-spacing:0!important;text-transform:none!important}'
+  +'.lw-combo-fab{display:none}'
+  +'@media (max-width:1240px){.lw-combo-fab{display:flex;align-items:center;gap:8px;position:fixed;left:12px;right:12px;max-width:520px;margin:0 auto;bottom:calc(72px + env(safe-area-inset-bottom));z-index:69;justify-content:space-between;padding:12px 16px;border-radius:12px;background:#3CFF6B;color:#04170c;font:700 14px/1.2 var(--font-body);text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.45)}'
+  +'.lw-combo-fab button{background:none;border:0;color:#04170c;font:700 18px/1 var(--font-body);padding:0 0 0 8px;cursor:pointer}}'
+  +'@media (prefers-reduced-motion:reduce){.main-nav a.nav-combo{animation:none}}'
+  +'</style>');
+ // Faixa fixa no telemóvel (só início e páginas de equipa; fecha e fica fechada nesta visita)
+ const page=document.body.dataset.page||'';
+ let fabClosed=false; try{fabClosed=sessionStorage.getItem('lw_combo_fab')==='x'}catch(e){}
+ if(!isCombo&&page!=='product'&&!fabClosed){
+  const fab=document.createElement('a');fab.className='lw-combo-fab';fab.href='combo.html?c=todos';
+  fab.innerHTML='<span>🔥 Combos Brasil e Portugal: 2 camisolas por 79€</span><button type="button" aria-label="Fechar">×</button>';
+  fab.querySelector('button').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fab.remove();try{sessionStorage.setItem('lw_combo_fab','x')}catch(err){}});
+  document.body.appendChild(fab);
+ }
  const bar=document.querySelector('.filter-bar');
  if(bar){
   document.querySelector('#catalogo h2').innerHTML='Encontre a sua<br>próxima peça';
