@@ -42,8 +42,8 @@
 
   const saveFavs = () => localStorage.setItem(STORE_KEY_FAV, JSON.stringify(favs));
 
-  function addLineToCart({ productId, size, customName, version, badge }) {
-    cart = LWD.Cart.addLine({ productId, size, quantity: 1, customName, version, badge });
+  function addLineToCart({ productId, size, customName, version, badge, fit }) {
+    cart = LWD.Cart.addLine({ productId, size, quantity: 1, customName, version, badge, fit });
 
     const product = LWD.getProduct(productId);
     if (product) {
@@ -205,7 +205,7 @@
       const p = LWD.getProduct(line.productId);
       const name = p ? LWD.fullName(p) : line.productId;
       const media = p ? LWD.productMedia(p) : '';
-      const extras = [line.version, line.customName ? `"${line.customName}"` : '', line.badge].filter(Boolean).join(' · ');
+      const extras = [line.fit, line.version, line.customName ? `"${line.customName}"` : '', line.badge].filter(Boolean).join(' · ');
       return `
       <div class="cart-line" data-line-id="${line.id}">
         <div class="cl-media${media.startsWith('<img') ? ' has-photo' : ''}">${media}</div>
@@ -847,6 +847,7 @@
     const isCoat = p.type === 'casaco' || isSet;
     if (isCoat) {
       if (versionWrap) versionWrap.hidden = true;
+      if ($('#fit-toggle')) $('#fit-toggle').hidden = true;
       if ($('#pdp-extras')) $('#pdp-extras').hidden = true;
       if ($('#personalize-block')) $('#personalize-block').hidden = true;
       $('#tab-descricao').innerHTML = '<p>' + (p.description || (isSet ? 'Conjunto completo de treino.' : 'Casaco ' + LWD.getTeam(p.teamSlug).name + ' com fecho frontal e bolsos.')) + '</p><ul>' + (isSet ? '<li>Inclui as duas peças apresentadas nas fotografias</li><li>Tamanhos S, M e L; o tamanho escolhido aplica-se ao conjunto</li>' : '<li>Disponível nos tamanhos S, M e L</li><li>Modelo apresentado nas fotografias</li>') + '</ul>';
@@ -854,6 +855,15 @@
       $('#tab-lavagem').innerHTML = '<p>Siga as instruções da etiqueta. Evite calor direto sobre os emblemas e estampas.</p>';
     }
     let selectedVersion = 'Adepto';
+    const fitWrap = $('#fit-toggle');
+    let selectedFit = 'Masculino';
+    if (fitWrap) {
+      $$('.version-toggle button', fitWrap).forEach(btn => btn.addEventListener('click', () => {
+        $$('.version-toggle button', fitWrap).forEach(b => b.classList.remove('is-selected'));
+        btn.classList.add('is-selected');
+        selectedFit = btn.textContent.trim();
+      }));
+    }
     if (versionWrap) {
       $$('.version-toggle button', versionWrap).forEach(btn => btn.addEventListener('click', () => {
         $$('.version-toggle button', versionWrap).forEach(b => b.classList.remove('is-selected'));
@@ -999,6 +1009,7 @@
         id: p.id, name: LWD.fullName(p), type: LWD.TYPE_LABEL[p.type],
         price: p.price + (custom ? 8 : 0) + (selectedBadge ? 2.9 : 0), size: selected.textContent.trim(),
         custom, version: versionWrap ? selectedVersion : 'Adepto', badge: selectedBadge,
+        fit: isCoat ? '' : selectedFit,
         media: gallery[0],
       };
     }
@@ -1008,7 +1019,7 @@
       const item = buildPdpProduct();
       if (!item) return;
       if (p.availability === 'esgotado') { showToast('Este produto está esgotado.'); return; }
-      addLineToCart({ productId: p.id, size: item.size, customName: item.custom, version: item.version, badge: item.badge });
+      addLineToCart({ productId: p.id, size: item.size, customName: item.custom, version: item.version, badge: item.badge, fit: item.fit });
       if (goToCheckout) {
         $('#checkout-btn')?.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
       } else {

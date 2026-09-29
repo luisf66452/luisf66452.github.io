@@ -413,22 +413,23 @@
     return product.price + (customName ? 8 : 0) + (badge ? 2.9 : 0);
   }
 
-  function addCartLine({ productId, size, quantity, customName, version, badge }) {
+  function addCartLine({ productId, size, quantity, customName, version, badge, fit }) {
     const product = getProduct(productId);
     if (!product) throw new Error('produto desconhecido');
     quantity = Math.max(1, quantity || 1);
     customName = (customName || '').trim();
     badge = badge === 'Mundial 2026' ? badge : '';
     version = version === 'Jogador' ? 'Jogador' : 'Adepto';
-    if (['casaco', 'conjunto'].includes(product.type)) { customName = ''; badge = ''; version = ''; }
+    fit = fit === 'Feminino' ? 'Feminino' : 'Masculino';
+    if (['casaco', 'conjunto'].includes(product.type)) { customName = ''; badge = ''; version = ''; fit = ''; }
     const cart = loadCart();
     // junta a uma linha existente do mesmo produto/tamanho/personalização
-    const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === version && (l.badge || '') === badge);
+    const existing = cart.lines.find((l) => l.productId === productId && l.size === size && l.customName === customName && l.version === version && (l.fit || 'Masculino') === (fit || 'Masculino') && (l.badge || '') === badge);
     if (existing) {
       existing.quantity += quantity;
     } else {
       cart.lines.push({
-        id: makeLineId(), productId, size, quantity, customName, version, badge,
+        id: makeLineId(), productId, size, quantity, customName, version, badge, fit,
         unitPrice: unitPriceFor(product, customName, badge), addedAt: Date.now(),
       });
     }
@@ -554,7 +555,7 @@ function calculatePairOffer(units) {
     cart.lines.forEach((l) => {
       for (let i = 0; i < l.quantity; i++) {
         lines.push({ productId: l.productId, size: l.size, quantity: 1,
-          customName: l.customName, version: l.version, badge: l.badge });
+          customName: l.customName, version: l.version, badge: l.badge, fit: l.fit || '' });
       }
     });
     const res = await fetch(CHECKOUT_API_URL, {
