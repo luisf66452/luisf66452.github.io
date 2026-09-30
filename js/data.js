@@ -235,17 +235,31 @@
     </svg>`;
   }
 
+  // Versões otimizadas (WebP 500px e 1000px) das fotos de produto, em img/opt/.
+  // img/products/<pasta>/<nome>.jpg -> img/opt/<pasta>__<nome>-<w>.webp
+  // Se a versão otimizada não existir, o onerror volta à foto original.
+  function optImg(src, w) {
+    const m = /^img\/products\/([^/]+)\/([^?]+)\.(?:jpe?g|png|webp)(?:\?.*)?$/i.exec(src || '');
+    return m ? `img/opt/${m[1]}__${m[2]}-${w}.webp` : null;
+  }
+  function photoTag(src, alt, sizes, main) {
+    const s500 = optImg(src, 500);
+    if (!s500) return `<img src="${src}" alt="${alt}" loading="lazy">`;
+    const s1000 = optImg(src, 1000);
+    return `<img src="${main === 1000 ? s1000 : s500}" srcset="${s500} 500w, ${s1000} 1000w" sizes="${sizes}" alt="${alt}" loading="lazy" decoding="async" onerror="this.onerror=null;this.removeAttribute('srcset');this.src='${src}'">`;
+  }
+
   function productMedia(p, alt) {
     alt = alt || fullName(p);
     if (p.photos && p.photos.length) {
-      return `<img src="${p.photos[0]}" alt="${alt}" loading="lazy">`;
+      return photoTag(p.photos[0], alt, '(max-width:640px) 45vw, 260px', 500);
     }
     return jerseySVG(p.main, p.trim);
   }
 
   function productGallery(p) {
     if (p.photos && p.photos.length) {
-      return p.photos.map(src => `<img src="${src}" alt="${fullName(p)}" loading="lazy">`);
+      return p.photos.map(src => photoTag(src, fullName(p), '(max-width:860px) 100vw, 600px', 1000));
     }
     return [jerseySVG(p.main, p.trim)];
   }
@@ -601,7 +615,7 @@ function calculatePairOffer(units) {
 
   window.LowWearData = {
     TEAMS, PRODUCTS, TYPE_LABEL,
-    euro, getTeam, getProduct, getProductsByTeam, fullName, jerseySVG, productMedia, productGallery,
+    euro, getTeam, getProduct, getProductsByTeam, fullName, jerseySVG, productMedia, productGallery, optImg,
     weeklyFeaturedProduct,
     PROMO_CONFIG, isPromoActive, isPromoEligible,
     TIER_CONFIG, isTierEligible, bestTierFor, tierDiscountPercent,
