@@ -1431,7 +1431,13 @@ body.no-scroll{ overflow:hidden; }
    Promoção de inauguração — "Escolha 6, pague 3"
    ============================================================ */
 :root{ --promo-bar-h:0px; --promo-neon:#3CFF6B; }
-
+/* Altura inicial da barra da promo (evita saltos antes de promo.js correr; promo.js acerta o valor exato) */
+:root:has(#promo-bar:not([hidden])){ --promo-bar-h:47px; }
+@media (max-width:640px){ :root:has(#promo-bar:not([hidden])){ --promo-bar-h:45px; } }
+@media (max-width:400px){ :root:has(#promo-bar:not([hidden])){ --promo-bar-h:69px; } }
+@media (max-width:1199px){ :root:has(#promo-bar.promo-bar-tall:not([hidden])){ --promo-bar-h:74px; } }
+@media (max-width:640px){ :root:has(#promo-bar.promo-bar-tall:not([hidden])){ --promo-bar-h:69px; } }
+@media (max-width:412px){ :root:has(#promo-bar.promo-bar-tall:not([hidden])){ --promo-bar-h:87px; } }
 .site-header{ top:var(--promo-bar-h); transition:top .2s var(--ease), background .3s var(--ease), backdrop-filter .3s var(--ease), border-color .3s var(--ease); }
 .header-spacer{ height:calc(76px + var(--promo-bar-h)); }
 
